@@ -164,38 +164,137 @@ const DEMO_WORKOUTS = {
   },
 };
 
-// ── INDIAN FOOD DATABASE ──────────────────────────────────────────────────────
+// ── FOOD DATABASE — VEG + NON-VEG ────────────────────────────────────────────
 const FOODS = [
-  { name: "Dal (1 bowl)", cal: 150, protein: 9, carbs: 24, fat: 3 },
-  { name: "Roti (1 piece)", cal: 80, protein: 3, carbs: 15, fat: 1 },
-  { name: "Rice (1 bowl)", cal: 200, protein: 4, carbs: 44, fat: 0 },
-  { name: "Paneer (100g)", cal: 265, protein: 18, carbs: 3, fat: 20 },
-  { name: "Chicken (100g)", cal: 165, protein: 31, carbs: 0, fat: 4 },
-  { name: "Egg (1 whole)", cal: 70, protein: 6, carbs: 0, fat: 5 },
-  { name: "Egg White (1)", cal: 17, protein: 4, carbs: 0, fat: 0 },
-  { name: "Milk (1 glass)", cal: 120, protein: 6, carbs: 12, fat: 5 },
-  { name: "Curd (1 bowl)", cal: 100, protein: 5, carbs: 8, fat: 4 },
-  { name: "Banana (1)", cal: 90, protein: 1, carbs: 23, fat: 0 },
-  { name: "Apple (1)", cal: 80, protein: 0, carbs: 21, fat: 0 },
-  { name: "Oats (1 bowl)", cal: 150, protein: 5, carbs: 27, fat: 3 },
-  { name: "Whey Protein (1 scoop)", cal: 120, protein: 24, carbs: 3, fat: 1 },
-  { name: "Peanut Butter (2 tbsp)", cal: 190, protein: 8, carbs: 7, fat: 16 },
-  { name: "Almonds (10 pieces)", cal: 70, protein: 3, carbs: 2, fat: 6 },
-  { name: "Sweet Potato (1)", cal: 130, protein: 2, carbs: 30, fat: 0 },
-  { name: "Rajma (1 bowl)", cal: 180, protein: 13, carbs: 30, fat: 1 },
-  { name: "Chhole (1 bowl)", cal: 170, protein: 10, carbs: 28, fat: 3 },
-  { name: "Bread (2 slices)", cal: 160, protein: 5, carbs: 30, fat: 2 },
-  { name: "Samosa (1)", cal: 260, protein: 4, carbs: 32, fat: 13 },
-  { name: "Poha (1 bowl)", cal: 180, protein: 3, carbs: 36, fat: 3 },
-  { name: "Paratha (1)", cal: 200, protein: 4, carbs: 30, fat: 7 },
-  { name: "Sprouts (1 bowl)", cal: 80, protein: 7, carbs: 12, fat: 1 },
-  { name: "Soya Chunks (50g)", cal: 180, protein: 26, carbs: 13, fat: 1 },
-  { name: "Tuna (100g)", cal: 130, protein: 28, carbs: 0, fat: 1 },
-  { name: "Greek Yogurt (1 bowl)", cal: 100, protein: 10, carbs: 6, fat: 3 },
-  { name: "Banana Shake (1 glass)", cal: 280, protein: 8, carbs: 48, fat: 6 },
-  { name: "Idli (2 pieces)", cal: 140, protein: 4, carbs: 28, fat: 1 },
-  { name: "Dosa (1)", cal: 170, protein: 4, carbs: 30, fat: 4 },
-  { name: "Mango (1 slice)", cal: 60, protein: 1, carbs: 15, fat: 0 },
+  // VEG
+  { name: "Dal (1 bowl)", cal: 150, protein: 9, carbs: 24, fat: 3, type: "veg", category: "Main", icon: "🍲" },
+  { name: "Roti (1 piece)", cal: 80, protein: 3, carbs: 15, fat: 1, type: "veg", category: "Carbs", icon: "🫓" },
+  { name: "Rice (1 bowl)", cal: 200, protein: 4, carbs: 44, fat: 0, type: "veg", category: "Carbs", icon: "🍚" },
+  { name: "Paneer (100g)", cal: 265, protein: 18, carbs: 3, fat: 20, type: "veg", category: "Protein", icon: "🧀" },
+  { name: "Rajma (1 bowl)", cal: 180, protein: 13, carbs: 30, fat: 1, type: "veg", category: "Protein", icon: "🫘" },
+  { name: "Chhole (1 bowl)", cal: 170, protein: 10, carbs: 28, fat: 3, type: "veg", category: "Protein", icon: "🫘" },
+  { name: "Soya Chunks (50g)", cal: 180, protein: 26, carbs: 13, fat: 1, type: "veg", category: "Protein", icon: "🌿" },
+  { name: "Sprouts (1 bowl)", cal: 80, protein: 7, carbs: 12, fat: 1, type: "veg", category: "Protein", icon: "🌱" },
+  { name: "Milk (1 glass)", cal: 120, protein: 6, carbs: 12, fat: 5, type: "veg", category: "Dairy", icon: "🥛" },
+  { name: "Curd (1 bowl)", cal: 100, protein: 5, carbs: 8, fat: 4, type: "veg", category: "Dairy", icon: "🥛" },
+  { name: "Greek Yogurt (1 bowl)", cal: 100, protein: 10, carbs: 6, fat: 3, type: "veg", category: "Dairy", icon: "🥛" },
+  { name: "Paneer Shake (1 glass)", cal: 320, protein: 22, carbs: 28, fat: 12, type: "veg", category: "Dairy", icon: "🥤" },
+  { name: "Banana (1)", cal: 90, protein: 1, carbs: 23, fat: 0, type: "veg", category: "Fruits", icon: "🍌" },
+  { name: "Apple (1)", cal: 80, protein: 0, carbs: 21, fat: 0, type: "veg", category: "Fruits", icon: "🍎" },
+  { name: "Mango (1 slice)", cal: 60, protein: 1, carbs: 15, fat: 0, type: "veg", category: "Fruits", icon: "🥭" },
+  { name: "Banana Shake (1 glass)", cal: 280, protein: 8, carbs: 48, fat: 6, type: "veg", category: "Drinks", icon: "🥤" },
+  { name: "Oats (1 bowl)", cal: 150, protein: 5, carbs: 27, fat: 3, type: "veg", category: "Breakfast", icon: "🥣" },
+  { name: "Poha (1 bowl)", cal: 180, protein: 3, carbs: 36, fat: 3, type: "veg", category: "Breakfast", icon: "🍽️" },
+  { name: "Idli (2 pieces)", cal: 140, protein: 4, carbs: 28, fat: 1, type: "veg", category: "Breakfast", icon: "🍽️" },
+  { name: "Dosa (1)", cal: 170, protein: 4, carbs: 30, fat: 4, type: "veg", category: "Breakfast", icon: "🍽️" },
+  { name: "Paratha (1)", cal: 200, protein: 4, carbs: 30, fat: 7, type: "veg", category: "Breakfast", icon: "🫓" },
+  { name: "Bread (2 slices)", cal: 160, protein: 5, carbs: 30, fat: 2, type: "veg", category: "Carbs", icon: "🍞" },
+  { name: "Sweet Potato (1)", cal: 130, protein: 2, carbs: 30, fat: 0, type: "veg", category: "Carbs", icon: "🥔" },
+  { name: "Peanut Butter (2 tbsp)", cal: 190, protein: 8, carbs: 7, fat: 16, type: "veg", category: "Fats", icon: "🥜" },
+  { name: "Almonds (10 pieces)", cal: 70, protein: 3, carbs: 2, fat: 6, type: "veg", category: "Fats", icon: "🌰" },
+  { name: "Walnuts (5 pieces)", cal: 130, protein: 3, carbs: 3, fat: 13, type: "veg", category: "Fats", icon: "🌰" },
+  { name: "Samosa (1)", cal: 260, protein: 4, carbs: 32, fat: 13, type: "veg", category: "Snacks", icon: "🔺" },
+  { name: "Whey Protein (1 scoop)", cal: 120, protein: 24, carbs: 3, fat: 1, type: "veg", category: "Supplements", icon: "💪" },
+  // EGG
+  { name: "Egg (1 whole)", cal: 70, protein: 6, carbs: 0, fat: 5, type: "egg", category: "Protein", icon: "🥚" },
+  { name: "Egg White (1)", cal: 17, protein: 4, carbs: 0, fat: 0, type: "egg", category: "Protein", icon: "🥚" },
+  { name: "Boiled Eggs (2)", cal: 140, protein: 12, carbs: 0, fat: 10, type: "egg", category: "Protein", icon: "🥚" },
+  { name: "Omelette (2 eggs)", cal: 180, protein: 13, carbs: 2, fat: 13, type: "egg", category: "Breakfast", icon: "🍳" },
+  { name: "Egg Bhurji (2 eggs)", cal: 200, protein: 14, carbs: 5, fat: 14, type: "egg", category: "Breakfast", icon: "🍳" },
+  // NON-VEG
+  { name: "Chicken Breast (100g)", cal: 165, protein: 31, carbs: 0, fat: 4, type: "nonveg", category: "Protein", icon: "🍗" },
+  { name: "Chicken Curry (1 bowl)", cal: 280, protein: 28, carbs: 8, fat: 15, type: "nonveg", category: "Main", icon: "🍲" },
+  { name: "Grilled Chicken (150g)", cal: 248, protein: 46, carbs: 0, fat: 5, type: "nonveg", category: "Protein", icon: "🍗" },
+  { name: "Tuna (100g)", cal: 130, protein: 28, carbs: 0, fat: 1, type: "nonveg", category: "Protein", icon: "🐟" },
+  { name: "Salmon (100g)", cal: 208, protein: 20, carbs: 0, fat: 13, type: "nonveg", category: "Protein", icon: "🐟" },
+  { name: "Fish Curry (1 bowl)", cal: 220, protein: 22, carbs: 6, fat: 12, type: "nonveg", category: "Main", icon: "🍲" },
+  { name: "Mutton (100g)", cal: 258, protein: 26, carbs: 0, fat: 17, type: "nonveg", category: "Protein", icon: "🥩" },
+  { name: "Keema (1 bowl)", cal: 300, protein: 24, carbs: 10, fat: 18, type: "nonveg", category: "Main", icon: "🍲" },
+];
+
+// ── WORKOUT CALORIE BURN ──────────────────────────────────────────────────────
+const WORKOUT_BURN = {
+  Chest: { Beginner: 200, Intermediate: 280, Advanced: 360 },
+  Back: { Beginner: 220, Intermediate: 300, Advanced: 390 },
+  Shoulders: { Beginner: 180, Intermediate: 250, Advanced: 320 },
+  Arms: { Beginner: 150, Intermediate: 200, Advanced: 260 },
+  Legs: { Beginner: 280, Intermediate: 380, Advanced: 480 },
+  Core: { Beginner: 160, Intermediate: 220, Advanced: 290 },
+  "Full Body": { Beginner: 300, Intermediate: 420, Advanced: 550 },
+};
+
+// ── MEAL TIMING GUIDE ─────────────────────────────────────────────────────────
+const MEAL_TIMING = [
+  {
+    time: "Subah uthne ke baad", icon: "🌅", label: "Wake Up",
+    veg: ["1 glass warm water with lemon", "5-6 almonds ya walnuts"],
+    nonveg: ["1 glass warm water with lemon", "5-6 almonds ya walnuts"],
+    tip: "Metabolism kick-start hota hai"
+  },
+  {
+    time: "Workout se 1-2 ghante pehle", icon: "⚡", label: "Pre-Workout",
+    veg: ["Banana + peanut butter", "Oats with milk", "Roti + dal"],
+    nonveg: ["Banana + boiled eggs", "Oats with milk", "Bread + egg omelette"],
+    tip: "Carbs + protein = energy aur performance"
+  },
+  {
+    time: "Workout ke 30-45 min baad", icon: "💪", label: "Post-Workout",
+    veg: ["Whey protein shake", "Paneer + roti", "Curd + banana"],
+    nonveg: ["Whey protein + banana", "Chicken breast + rice", "Boiled eggs + rice"],
+    tip: "Ye window muscle recovery ke liye best hai"
+  },
+  {
+    time: "Dopahar ka khana", icon: "☀️", label: "Lunch",
+    veg: ["Dal + rice + curd + sabzi", "Rajma chawal", "Paneer curry + roti"],
+    nonveg: ["Chicken curry + rice", "Fish + roti + salad", "Mutton + dal + rice"],
+    tip: "Din ka sabse bada meal — balanced plate"
+  },
+  {
+    time: "Shaam ka snack", icon: "🌤️", label: "Evening Snack",
+    veg: ["Sprouts chaat", "Fruits + curd", "Chana chaat"],
+    nonveg: ["Boiled eggs", "Chicken tikka", "Tuna salad"],
+    tip: "Light rakho — heavy nahi"
+  },
+  {
+    time: "Raat ka khana", icon: "🌙", label: "Dinner",
+    veg: ["Dal + roti + salad", "Paneer + sabzi + roti", "Khichdi + curd"],
+    nonveg: ["Grilled chicken + sabzi", "Fish + roti + salad", "Egg curry + roti"],
+    tip: "Raat ko carbs kam karo, protein zyada"
+  },
+  {
+    time: "Sone se 30 min pehle", icon: "😴", label: "Before Bed",
+    veg: ["1 glass warm milk", "Curd ya paneer"],
+    nonveg: ["1 glass warm milk", "Boiled egg white (2)"],
+    tip: "Casein protein raat bhar muscles repair karta hai"
+  },
+];
+
+// ── MACRO GUIDE FOR BEGINNERS ─────────────────────────────────────────────────
+const MACRO_GUIDE = [
+  {
+    name: "Protein", icon: "🥩", color: "#00ff88", hindi: "Muscles banata hai",
+    what: "Body ke building blocks hain — har cell protein se bani hai",
+    why: "Gym karte ho toh muscles toot ti hain. Protein unhe repair aur grow karta hai",
+    how: "Apne weight ka 1.5-2.2 gram per kg (70kg = 105-154g/day)",
+    sources_veg: ["Paneer", "Dal", "Rajma", "Soya chunks", "Curd", "Whey protein"],
+    sources_nonveg: ["Chicken breast", "Eggs", "Fish", "Tuna", "Mutton"],
+  },
+  {
+    name: "Carbs", icon: "🍞", color: "#4488ff", hindi: "Energy deta hai",
+    what: "Body ka primary fuel source — brain aur muscles dono ko chahiye",
+    why: "Gym mein energy ke liye carbs zaroor chahiye. Kam karo toh weak feel hoga",
+    how: "Total calories ka 40-50% (generally 200-300g/day)",
+    sources_veg: ["Rice", "Roti", "Oats", "Sweet potato", "Banana", "Bread"],
+    sources_nonveg: ["Rice", "Roti", "Oats", "Sweet potato", "Banana"],
+  },
+  {
+    name: "Fat", icon: "🥑", color: "#ffcc00", hindi: "Hormones ke liye",
+    what: "Healthy fats hormones banate hain, vitamins absorb karte hain",
+    why: "Fat se daro mat — fat nahi khaoge toh testosterone kam hoga, muscles nahi banenge",
+    how: "Total calories ka 25% (generally 50-70g/day)",
+    sources_veg: ["Almonds", "Walnuts", "Peanut butter", "Ghee (thoda)", "Coconut"],
+    sources_nonveg: ["Salmon", "Eggs (yolk)", "Almonds", "Peanut butter", "Fish"],
+  },
 ];
 
 const storage = {
@@ -220,11 +319,9 @@ const MUSCLE_COLORS = { "Chest": "#ff6644", "Back": "#4488ff", "Shoulders": "#aa
 const C = {
   bg: "#0a0a0f", surface: "#111118", card: "#16161f", border: "#1e1e2e",
   accent: "#00ff88", accentDim: "#00ff8830", text: "#e8e8f0",
-  muted: "#5a5a78", red: "#ff4466", yellow: "#ffcc00", blue: "#4488ff",
-  orange: "#ff8844",
+  muted: "#5a5a78", red: "#ff4466", yellow: "#ffcc00", blue: "#4488ff", orange: "#ff8844",
 };
 
-// ── MINI CHART ────────────────────────────────────────────────────────────────
 function MiniChart({ data, color = C.accent, height = 60 }) {
   if (!data || data.length < 2) return <div style={{ height, display: "flex", alignItems: "center", justifyContent: "center", color: C.muted, fontFamily: "'Outfit'", fontSize: 12 }}>Add more entries to see chart</div>;
   const vals = data.map(d => d.value);
@@ -239,7 +336,6 @@ function MiniChart({ data, color = C.accent, height = 60 }) {
   );
 }
 
-// ── MACRO BAR ─────────────────────────────────────────────────────────────────
 function MacroBar({ label, current, target, color }) {
   const pct = Math.min((current / target) * 100, 100);
   const over = current > target;
@@ -247,16 +343,15 @@ function MacroBar({ label, current, target, color }) {
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
         <span style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{label}</span>
-        <span style={{ fontFamily: "'Outfit'", fontSize: 12, color: over ? C.red : color }}>{current}g / {target}g</span>
+        <span style={{ fontFamily: "'Outfit'", fontSize: 12, color: over ? C.red : color }}>{current}g / {target}g {over ? "⚠️" : ""}</span>
       </div>
       <div style={{ height: 8, background: C.border, borderRadius: 4, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: over ? C.red : color, borderRadius: 4, transition: "width 0.3s ease" }} />
+        <div style={{ height: "100%", width: `${pct}%`, background: over ? C.red : color, borderRadius: 4, transition: "width 0.3s" }} />
       </div>
     </div>
   );
 }
 
-// ── REST TIMER ────────────────────────────────────────────────────────────────
 function RestTimer({ seconds, onClose }) {
   const [timeLeft, setTimeLeft] = useState(seconds);
   const [running, setRunning] = useState(true);
@@ -305,7 +400,6 @@ function RestTimer({ seconds, onClose }) {
   );
 }
 
-// ── MAIN APP ──────────────────────────────────────────────────────────────────
 export default function FitTrack() {
   const [screen, setScreen] = useState("home");
   const [selectedMuscle, setSelectedMuscle] = useState("Chest");
@@ -331,8 +425,6 @@ export default function FitTrack() {
   const [weekPlan, setWeekPlan] = useState(() => storage.get("ft_plan") || DEFAULT_PLAN);
   const [editingPlan, setEditingPlan] = useState(false);
   const [tempPlan, setTempPlan] = useState({});
-
-  // Nutrition State
   const [nutProfile, setNutProfile] = useState(() => storage.get("ft_nut_profile") || { age: "", weight: "", height: "", gender: "male", activity: "moderate", goal: "maintain" });
   const [nutTargets, setNutTargets] = useState(() => storage.get("ft_nut_targets") || null);
   const [foodLog, setFoodLog] = useState(() => {
@@ -341,10 +433,19 @@ export default function FitTrack() {
     return (saved && saved.date === today) ? saved : { date: today, items: [] };
   });
   const [foodSearch, setFoodSearch] = useState("");
-  const [nutTab, setNutTab] = useState("today"); // today | calculator | foods
+  const [nutTab, setNutTab] = useState("today");
+  const [dietType, setDietType] = useState(() => storage.get("ft_diet") || "veg"); // veg | egg | nonveg
+  const [waterCount, setWaterCount] = useState(() => {
+    const saved = storage.get("ft_water");
+    const today = new Date().toLocaleDateString("en-IN");
+    return (saved && saved.date === today) ? saved.count : 0;
+  });
+  const [waterGoal] = useState(8);
+  const [caloriesBurned, setCaloriesBurned] = useState(() => storage.get("ft_burned") || 0);
+  const [expandedMacro, setExpandedMacro] = useState(null);
+  const [mealTimingDiet, setMealTimingDiet] = useState("veg");
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 2800); };
-
   const getTodayKey = () => DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
   const todayKey = getTodayKey();
   const todayMuscle = weekPlan[todayKey];
@@ -388,35 +489,45 @@ export default function FitTrack() {
     const newHistory = [entry, ...history].slice(0, 30);
     setHistory(newHistory); storage.set("ft_history", newHistory);
     const newStreak = streak + 1; setStreak(newStreak); storage.set("ft_streak", newStreak);
-    setCompleted(true); showToast("Workout complete! 🔥");
+    const burned = WORKOUT_BURN[selectedMuscle]?.[selectedLevel] || 250;
+    const newBurned = caloriesBurned + burned;
+    setCaloriesBurned(newBurned); storage.set("ft_burned", newBurned);
+    setCompleted(true);
+    showToast(`Workout complete! 🔥 ~${burned} kcal burned!`);
   };
 
-  // ── NUTRITION FUNCTIONS ───────────────────────────────────────────────────
+  const addWater = () => {
+    if (waterCount >= waterGoal) { showToast("Daily goal complete! 💧"); return; }
+    const newCount = waterCount + 1;
+    setWaterCount(newCount);
+    storage.set("ft_water", { date: new Date().toLocaleDateString("en-IN"), count: newCount });
+    if (newCount === waterGoal) showToast("💧 Water goal complete! Great job!");
+  };
+
   const calculateTargets = () => {
     const { age, weight, height, gender, activity, goal } = nutProfile;
     if (!age || !weight || !height) { showToast("Saari info fill karo!", "error"); return; }
     const w = parseFloat(weight); const h = parseFloat(height); const a = parseInt(age);
-    // BMR (Mifflin-St Jeor)
     let bmr = gender === "male" ? (10 * w) + (6.25 * h) - (5 * a) + 5 : (10 * w) + (6.25 * h) - (5 * a) - 161;
     const activityMultiplier = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 };
     let tdee = bmr * activityMultiplier[activity];
     let calories = goal === "lose" ? tdee - 500 : goal === "gain" ? tdee + 300 : tdee;
     calories = Math.round(calories);
-    const protein = Math.round(w * 2.2); // 2.2g per kg
+    const protein = Math.round(w * 2.2);
     const fat = Math.round((calories * 0.25) / 9);
     const carbs = Math.round((calories - (protein * 4) - (fat * 9)) / 4);
     const targets = { calories, protein, fat, carbs, bmr: Math.round(bmr), tdee: Math.round(tdee) };
     setNutTargets(targets); storage.set("ft_nut_targets", targets);
     storage.set("ft_nut_profile", nutProfile);
-    showToast("Targets calculate ho gaye! 🎯");
-    setNutTab("today");
+    storage.set("ft_diet", dietType);
+    showToast("Targets set ho gaye! 🎯"); setNutTab("today");
   };
 
   const addFood = (food) => {
     const today = new Date().toLocaleDateString("en-IN");
     const newLog = foodLog.date === today ? { ...foodLog, items: [...foodLog.items, { ...food, id: Date.now() }] } : { date: today, items: [{ ...food, id: Date.now() }] };
     setFoodLog(newLog); storage.set("ft_food_log", newLog);
-    showToast(`+${food.cal} cal added! 🍽️`);
+    showToast(`+${food.cal} kcal added! 🍽️`);
   };
 
   const removeFood = (id) => {
@@ -424,8 +535,16 @@ export default function FitTrack() {
     setFoodLog(newLog); storage.set("ft_food_log", newLog);
   };
 
+  const getFilteredFoods = () => {
+    let foods = FOODS;
+    if (dietType === "veg") foods = foods.filter(f => f.type === "veg");
+    else if (dietType === "egg") foods = foods.filter(f => f.type === "veg" || f.type === "egg");
+    if (foodSearch) foods = foods.filter(f => f.name.toLowerCase().includes(foodSearch.toLowerCase()));
+    return foods;
+  };
+
   const totalEaten = foodLog.items.reduce((acc, f) => ({ cal: acc.cal + f.cal, protein: acc.protein + f.protein, carbs: acc.carbs + f.carbs, fat: acc.fat + f.fat }), { cal: 0, protein: 0, carbs: 0, fat: 0 });
-  const filteredFoods = FOODS.filter(f => f.name.toLowerCase().includes(foodSearch.toLowerCase()));
+  const netCalories = totalEaten.cal - caloriesBurned;
 
   const saveBodyLog = () => {
     const hasData = Object.values(bodyForm).some(v => v !== "");
@@ -439,7 +558,7 @@ export default function FitTrack() {
 
   const getChartData = (key) => bodyLogs.filter(l => l[key] != null).map(l => ({ value: l[key], date: l.date })).reverse();
   const getChange = (key) => { const data = getChartData(key); if (data.length < 2) return null; return data[data.length - 1].value - data[0].value; };
-  const savePlan = () => { setWeekPlan(tempPlan); storage.set("ft_plan", tempPlan); setEditingPlan(false); showToast("Weekly plan saved! 📅"); };
+  const savePlan = () => { setWeekPlan(tempPlan); storage.set("ft_plan", tempPlan); setEditingPlan(false); showToast("Weekly plan saved!"); };
   const saveName = () => { storage.set("ft_name", nameInput); setMemberName(nameInput); showToast("Name saved!"); };
   const prog = totalProgress();
 
@@ -453,11 +572,9 @@ export default function FitTrack() {
         @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
         .animate-in { animation: slideUp 0.4s ease forwards; }
         .card-hover:hover { border-color: ${C.accent}44 !important; transform: translateY(-1px); transition: all 0.2s; }
-        select, input { -webkit-appearance: none; }
       `}</style>
 
       <div style={{ position: "fixed", inset: 0, zIndex: 0, backgroundImage: `linear-gradient(${C.border}22 1px, transparent 1px), linear-gradient(90deg, ${C.border}22 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
-      <div style={{ position: "fixed", top: -200, right: -200, width: 500, height: 500, background: `radial-gradient(circle, ${C.accent}08 0%, transparent 70%)`, pointerEvents: "none", zIndex: 0 }} />
 
       {toast && <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: toast.type === "error" ? C.red : C.accent, color: toast.type === "error" ? "#fff" : "#000", padding: "10px 20px", borderRadius: 8, fontFamily: "'Outfit'", fontWeight: 600, fontSize: 14, zIndex: 9999, boxShadow: "0 4px 20px rgba(0,0,0,0.4)", whiteSpace: "nowrap" }}>{toast.msg}</div>}
       {timer && <RestTimer seconds={timer.seconds} onClose={() => setTimer(null)} />}
@@ -526,36 +643,32 @@ export default function FitTrack() {
           {screen === "home" && (
             <div className="animate-in">
               {todayMuscle && todayMuscle !== "Rest Day" && (
-                <div style={{ background: `${MUSCLE_COLORS[todayMuscle]}22`, border: `1px solid ${MUSCLE_COLORS[todayMuscle]}55`, borderRadius: 12, padding: "14px 16px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: `${MUSCLE_COLORS[todayMuscle]}22`, border: `1px solid ${MUSCLE_COLORS[todayMuscle]}55`, borderRadius: 12, padding: "14px 16px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginBottom: 3 }}>📅 TODAY'S PLAN</div>
+                    <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>📅 TODAY'S PLAN</div>
                     <div style={{ fontSize: 20, color: MUSCLE_COLORS[todayMuscle] }}>{todayMuscle} Day</div>
                   </div>
                   <button onClick={() => handleGenerate(todayMuscle)} style={{ background: MUSCLE_COLORS[todayMuscle], border: "none", borderRadius: 8, padding: "10px 16px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 14 }}>START ⚡</button>
                 </div>
               )}
-              {todayMuscle === "Rest Day" && (
-                <div style={{ background: "#33335522", border: `1px solid #33335566`, borderRadius: 12, padding: "14px 16px", marginBottom: 20, textAlign: "center" }}>
-                  <div style={{ fontSize: 24 }}>😴</div>
-                  <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.muted, marginTop: 4 }}>Aaj Rest Day hai!</div>
-                </div>
-              )}
 
-              {/* Calorie Summary on Home */}
-              {nutTargets && (
-                <div style={{ background: `${C.orange}11`, border: `1px solid ${C.orange}33`, borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>🥗 TODAY'S CALORIES</div>
-                      <div style={{ fontSize: 22, color: totalEaten.cal > nutTargets.calories ? C.red : C.orange }}>{totalEaten.cal} <span style={{ fontSize: 13, color: C.muted }}>/ {nutTargets.calories} kcal</span></div>
+              {/* Water + Calorie on Home */}
+              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+                {nutTargets && (
+                  <div style={{ flex: 1, background: `${C.orange}11`, border: `1px solid ${C.orange}33`, borderRadius: 10, padding: "12px" }}>
+                    <div style={{ fontFamily: "'Outfit'", fontSize: 10, color: C.muted }}>🥗 CALORIES</div>
+                    <div style={{ fontSize: 18, color: C.orange }}>{totalEaten.cal}<span style={{ fontSize: 11, color: C.muted }}>/{nutTargets.calories}</span></div>
+                    <div style={{ height: 4, background: C.border, borderRadius: 2, marginTop: 6 }}>
+                      <div style={{ height: "100%", width: `${Math.min((totalEaten.cal / nutTargets.calories) * 100, 100)}%`, background: C.orange, borderRadius: 2 }} />
                     </div>
-                    <button onClick={() => setScreen("nutrition")} style={{ background: `${C.orange}22`, border: `1px solid ${C.orange}44`, borderRadius: 8, padding: "8px 12px", cursor: "pointer", color: C.orange, fontFamily: "'Bebas Neue'", fontSize: 13 }}>LOG FOOD</button>
                   </div>
-                  <div style={{ height: 6, background: C.border, borderRadius: 3, marginTop: 10, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${Math.min((totalEaten.cal / nutTargets.calories) * 100, 100)}%`, background: totalEaten.cal > nutTargets.calories ? C.red : C.orange, borderRadius: 3, transition: "width 0.3s" }} />
-                  </div>
+                )}
+                <div style={{ flex: 1, background: "#4488ff11", border: "1px solid #4488ff33", borderRadius: 10, padding: "12px" }}>
+                  <div style={{ fontFamily: "'Outfit'", fontSize: 10, color: C.muted }}>💧 WATER</div>
+                  <div style={{ fontSize: 18, color: C.blue }}>{waterCount}<span style={{ fontSize: 11, color: C.muted }}>/{waterGoal} glasses</span></div>
+                  <button onClick={addWater} style={{ marginTop: 6, background: `${C.blue}22`, border: `1px solid ${C.blue}44`, borderRadius: 6, padding: "4px 10px", cursor: "pointer", color: C.blue, fontFamily: "'Outfit'", fontSize: 11, width: "100%" }}>+ Add Glass</button>
                 </div>
-              )}
+              </div>
 
               <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</div>
               <div style={{ marginBottom: 20 }}>
@@ -570,15 +683,14 @@ export default function FitTrack() {
                   {LEVELS.map(l => <button key={l} onClick={() => setSelectedLevel(l)} style={{ flex: 1, background: selectedLevel === l ? C.accentDim : C.card, border: `1px solid ${selectedLevel === l ? C.accent : C.border}`, borderRadius: 8, padding: "12px 8px", cursor: "pointer", color: selectedLevel === l ? C.accent : C.muted, fontSize: 14, fontFamily: "'Bebas Neue'", letterSpacing: 1, transition: "all 0.2s" }}>{l}</button>)}
                 </div>
               </div>
-              <button onClick={() => handleGenerate()} disabled={loading} style={{ width: "100%", background: loading ? C.border : C.accent, border: "none", borderRadius: 12, padding: "18px", cursor: loading ? "not-allowed" : "pointer", color: "#000", fontSize: 22, fontFamily: "'Bebas Neue'", letterSpacing: 3, transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+              <button onClick={() => handleGenerate()} disabled={loading} style={{ width: "100%", background: loading ? C.border : C.accent, border: "none", borderRadius: 12, padding: "18px", cursor: loading ? "not-allowed" : "pointer", color: "#000", fontSize: 22, fontFamily: "'Bebas Neue'", letterSpacing: 3, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
                 {loading ? (<><div style={{ width: 20, height: 20, border: "2px solid #000", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />LOADING...</>) : "⚡ GENERATE TODAY'S WORKOUT"}
               </button>
-              <div style={{ marginTop: 28 }}>
-                <div style={{ fontSize: 13, color: C.muted, letterSpacing: 2, marginBottom: 12, fontFamily: "'Outfit'" }}>THIS WEEK</div>
+              <div style={{ marginTop: 24 }}>
+                <div style={{ fontSize: 13, color: C.muted, letterSpacing: 2, marginBottom: 10, fontFamily: "'Outfit'" }}>THIS WEEK</div>
                 <div style={{ display: "flex", gap: 6 }}>
                   {DAYS.map((d, i) => {
-                    const isToday = d === todayKey;
-                    const hasLog = history.some(h => new Date(h.ts).getDay() === (i + 1) % 7);
+                    const isToday = d === todayKey; const hasLog = history.some(h => new Date(h.ts).getDay() === (i + 1) % 7);
                     const planned = weekPlan[d]; const color = MUSCLE_COLORS[planned] || C.muted;
                     return (
                       <div key={d} style={{ flex: 1, background: hasLog ? C.accentDim : `${color}11`, border: `1px solid ${isToday ? C.accent : color + "44"}`, borderRadius: 8, padding: "8px 4px", textAlign: "center" }}>
@@ -599,7 +711,7 @@ export default function FitTrack() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <div>
                   <div style={{ fontSize: 24, color: C.accent }}>{selectedMuscle.toUpperCase()} DAY</div>
-                  <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>{selectedLevel} · {workout.length} exercises</div>
+                  <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>{selectedLevel} · {workout.length} exercises · ~{WORKOUT_BURN[selectedMuscle]?.[selectedLevel]} kcal</div>
                 </div>
                 <button onClick={() => setScreen("home")} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.muted, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 12 }}>← Back</button>
               </div>
@@ -643,7 +755,8 @@ export default function FitTrack() {
                 <div style={{ background: C.accentDim, border: `1px solid ${C.accent}`, borderRadius: 12, padding: 20, textAlign: "center", marginTop: 8 }}>
                   <div style={{ fontSize: 28 }}>🔥</div>
                   <div style={{ fontSize: 22, color: C.accent }}>WORKOUT COMPLETE!</div>
-                  <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.muted, marginTop: 4 }}>Streak: {streak} days 🔥</div>
+                  <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.orange, marginTop: 4 }}>~{WORKOUT_BURN[selectedMuscle]?.[selectedLevel]} kcal burned 🔥</div>
+                  <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginTop: 2 }}>Streak: {streak} days</div>
                 </div>
               )}
             </div>
@@ -659,7 +772,7 @@ export default function FitTrack() {
                 </button>
               </div>
               <div style={{ background: `${MUSCLE_COLORS[todayMuscle] || C.muted}22`, border: `1px solid ${MUSCLE_COLORS[todayMuscle] || C.muted}44`, borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
-                <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginBottom: 3 }}>🎯 TODAY</div>
+                <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>🎯 TODAY</div>
                 <div style={{ fontSize: 22, color: MUSCLE_COLORS[todayMuscle] || C.muted }}>{todayMuscle}</div>
                 {todayMuscle !== "Rest Day" && <button onClick={() => handleGenerate(todayMuscle)} style={{ marginTop: 10, background: MUSCLE_COLORS[todayMuscle], border: "none", borderRadius: 8, padding: "8px 16px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 14 }}>⚡ START</button>}
               </div>
@@ -679,9 +792,7 @@ export default function FitTrack() {
                             <select value={tempPlan[d] || "Rest Day"} onChange={e => setTempPlan(p => ({ ...p, [d]: e.target.value }))} style={{ background: C.surface, border: `1px solid ${color}55`, borderRadius: 6, padding: "6px 10px", color: color, fontFamily: "'Bebas Neue'", fontSize: 14, outline: "none", cursor: "pointer" }}>
                               {["Rest Day", ...MUSCLES].map(opt => <option key={opt} value={opt} style={{ background: C.surface, color: C.text }}>{opt}</option>)}
                             </select>
-                          ) : (
-                            <div style={{ fontSize: 16, color }}>{muscle}</div>
-                          )}
+                          ) : <div style={{ fontSize: 16, color }}>{muscle}</div>}
                         </div>
                       </div>
                       {!editingPlan && muscle !== "Rest Day" && <button onClick={() => handleGenerate(muscle)} style={{ background: `${color}22`, border: `1px solid ${color}44`, borderRadius: 8, padding: "6px 12px", cursor: "pointer", color, fontFamily: "'Bebas Neue'", fontSize: 13 }}>GO ▶</button>}
@@ -698,12 +809,18 @@ export default function FitTrack() {
           {screen === "nutrition" && (
             <div className="animate-in">
               <div style={{ fontSize: 22, marginBottom: 4 }}>NUTRITION</div>
-              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>Calories aur macros track karo</div>
+
+              {/* Diet Type Selector */}
+              <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+                {[["veg","🥦 Veg"],["egg","🥚 Eggetarian"],["nonveg","🍗 Non-Veg"]].map(([v, l]) => (
+                  <button key={v} onClick={() => { setDietType(v); storage.set("ft_diet", v); }} style={{ flex: 1, background: dietType === v ? C.accentDim : C.card, border: `1px solid ${dietType === v ? C.accent : C.border}`, borderRadius: 8, padding: "8px 4px", cursor: "pointer", color: dietType === v ? C.accent : C.muted, fontFamily: "'Outfit'", fontSize: 11, fontWeight: 500 }}>{l}</button>
+                ))}
+              </div>
 
               {/* Sub Tabs */}
-              <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
-                {[["today","📊","Today"],["foods","🍽️","Add Food"],["calculator","🧮","Calculator"]].map(([t, icon, label]) => (
-                  <button key={t} onClick={() => setNutTab(t)} style={{ flex: 1, background: nutTab === t ? C.accentDim : C.card, border: `1px solid ${nutTab === t ? C.accent + "66" : C.border}`, borderRadius: 8, padding: "8px 4px", cursor: "pointer", color: nutTab === t ? C.accent : C.muted, fontFamily: "'Bebas Neue'", fontSize: 11, letterSpacing: 1 }}>{icon} {label}</button>
+              <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+                {[["today","📊 Today"],["foods","🍽️ Foods"],["guide","📚 Guide"],["timing","⏰ Meal Time"],["calculator","🧮 Calc"]].map(([t, label]) => (
+                  <button key={t} onClick={() => setNutTab(t)} style={{ flex: 1, background: nutTab === t ? C.accentDim : C.card, border: `1px solid ${nutTab === t ? C.accent + "66" : C.border}`, borderRadius: 8, padding: "7px 2px", cursor: "pointer", color: nutTab === t ? C.accent : C.muted, fontFamily: "'Outfit'", fontSize: 9, fontWeight: 500 }}>{label}</button>
                 ))}
               </div>
 
@@ -711,28 +828,58 @@ export default function FitTrack() {
               {nutTab === "today" && (
                 <>
                   {!nutTargets ? (
-                    <div style={{ textAlign: "center", padding: "30px 20px", color: C.muted, fontFamily: "'Outfit'" }}>
+                    <div style={{ textAlign: "center", padding: "30px", color: C.muted, fontFamily: "'Outfit'" }}>
                       <div style={{ fontSize: 48 }}>🧮</div>
-                      <div style={{ marginTop: 12, fontSize: 15 }}>Pehle Calculator mein apni info daalo!</div>
+                      <div style={{ marginTop: 12 }}>Pehle Calculator mein info daalo!</div>
                       <button onClick={() => setNutTab("calculator")} style={{ marginTop: 16, background: C.accent, border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 16 }}>CALCULATOR OPEN KARO</button>
                     </div>
                   ) : (
                     <>
-                      {/* Calorie Ring */}
-                      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, marginBottom: 16, textAlign: "center" }}>
-                        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 8 }}>{new Date().toLocaleDateString("en-IN")}</div>
-                        <div style={{ fontSize: 42, color: totalEaten.cal > nutTargets.calories ? C.red : C.orange, lineHeight: 1 }}>{totalEaten.cal}</div>
-                        <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.muted }}>/ {nutTargets.calories} kcal</div>
-                        <div style={{ height: 10, background: C.border, borderRadius: 5, margin: "12px 0", overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${Math.min((totalEaten.cal / nutTargets.calories) * 100, 100)}%`, background: totalEaten.cal > nutTargets.calories ? C.red : C.orange, borderRadius: 5, transition: "width 0.3s" }} />
+                      {/* Calorie Card */}
+                      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, marginBottom: 14, textAlign: "center" }}>
+                        <div style={{ display: "flex", justifyContent: "space-around", marginBottom: 16 }}>
+                          <div>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>Eaten</div>
+                            <div style={{ fontSize: 28, color: C.orange }}>{totalEaten.cal}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>Burned 🔥</div>
+                            <div style={{ fontSize: 28, color: C.red }}>{caloriesBurned}</div>
+                          </div>
+                          <div>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>Net</div>
+                            <div style={{ fontSize: 28, color: C.accent }}>{netCalories}</div>
+                          </div>
                         </div>
-                        <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>
-                          {nutTargets.calories - totalEaten.cal > 0 ? `${nutTargets.calories - totalEaten.cal} kcal remaining` : `${totalEaten.cal - nutTargets.calories} kcal over`}
+                        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 8 }}>Goal: {nutTargets.calories} kcal</div>
+                        <div style={{ height: 10, background: C.border, borderRadius: 5, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${Math.min((totalEaten.cal / nutTargets.calories) * 100, 100)}%`, background: totalEaten.cal > nutTargets.calories ? C.red : C.orange, borderRadius: 5 }} />
+                        </div>
+                        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginTop: 6 }}>
+                          {nutTargets.calories - totalEaten.cal > 0 ? `${nutTargets.calories - totalEaten.cal} kcal remaining` : `${totalEaten.cal - nutTargets.calories} kcal over!`}
                         </div>
                       </div>
 
+                      {/* Water Tracker */}
+                      <div style={{ background: "#4488ff11", border: "1px solid #4488ff33", borderRadius: 12, padding: 16, marginBottom: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.blue }}>💧 Water Intake</div>
+                          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.blue }}>{waterCount}/{waterGoal} glasses</div>
+                        </div>
+                        <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+                          {Array.from({ length: waterGoal }).map((_, i) => (
+                            <div key={i} style={{ flex: 1, height: 32, borderRadius: 6, background: i < waterCount ? C.blue : C.border, transition: "all 0.3s", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>
+                              {i < waterCount ? "💧" : ""}
+                            </div>
+                          ))}
+                        </div>
+                        <button onClick={addWater} style={{ width: "100%", background: `${C.blue}22`, border: `1px solid ${C.blue}44`, borderRadius: 8, padding: "8px", cursor: "pointer", color: C.blue, fontFamily: "'Bebas Neue'", fontSize: 15 }}>
+                          {waterCount >= waterGoal ? "✅ GOAL COMPLETE!" : "+ ADD GLASS OF WATER"}
+                        </button>
+                      </div>
+
                       {/* Macros */}
-                      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+                      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, marginBottom: 14 }}>
                         <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 14 }}>MACROS</div>
                         <MacroBar label="🥩 Protein" current={totalEaten.protein} target={nutTargets.protein} color={C.accent} />
                         <MacroBar label="🍞 Carbs" current={totalEaten.carbs} target={nutTargets.carbs} color={C.blue} />
@@ -740,22 +887,22 @@ export default function FitTrack() {
                       </div>
 
                       {/* Food Log */}
-                      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+                      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>TODAY'S FOOD</div>
+                          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>TODAY'S FOOD LOG</div>
                           <button onClick={() => setNutTab("foods")} style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: "5px 10px", cursor: "pointer", color: C.accent, fontFamily: "'Bebas Neue'", fontSize: 12 }}>+ ADD</button>
                         </div>
                         {foodLog.items.length === 0 ? (
-                          <div style={{ textAlign: "center", padding: "20px", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>Kuch log nahi kiya abhi</div>
+                          <div style={{ textAlign: "center", padding: "16px", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>Kuch log nahi kiya abhi</div>
                         ) : foodLog.items.map(item => (
                           <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                             <div>
-                              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.text }}>{item.name}</div>
+                              <div style={{ fontFamily: "'Outfit'", fontSize: 13 }}>{item.icon} {item.name}</div>
                               <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>P:{item.protein}g C:{item.carbs}g F:{item.fat}g</div>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.orange }}>{item.cal} kcal</div>
-                              <button onClick={() => removeFood(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: C.red, fontSize: 16 }}>×</button>
+                              <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.orange }}>{item.cal}</div>
+                              <button onClick={() => removeFood(item.id)} style={{ background: "none", border: "none", cursor: "pointer", color: C.red, fontSize: 18 }}>×</button>
                             </div>
                           </div>
                         ))}
@@ -768,21 +915,113 @@ export default function FitTrack() {
               {/* FOODS TAB */}
               {nutTab === "foods" && (
                 <>
-                  <input value={foodSearch} onChange={e => setFoodSearch(e.target.value)} placeholder="🔍 Food search karo... (dal, roti, egg...)" style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none", marginBottom: 14 }} />
+                  <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 10 }}>
+                    {dietType === "veg" ? "🥦 Sirf Vegetarian foods dikh rahe hain" : dietType === "egg" ? "🥚 Veg + Egg foods dikh rahe hain" : "🍗 Saare foods dikh rahe hain"}
+                  </div>
+                  <input value={foodSearch} onChange={e => setFoodSearch(e.target.value)} placeholder="🔍 Search... dal, roti, chicken, egg..." style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none", marginBottom: 14 }} />
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {filteredFoods.map((food, i) => (
-                      <div key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    {getFilteredFoods().map((food, i) => (
+                      <div key={i} style={{ background: C.card, border: `1px solid ${food.type === "nonveg" ? C.red + "33" : food.type === "egg" ? C.yellow + "33" : C.border}`, borderRadius: 10, padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
-                          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.text }}>{food.name}</div>
-                          <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginTop: 2 }}>P:{food.protein}g · C:{food.carbs}g · F:{food.fat}g</div>
+                          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.text }}>{food.icon} {food.name}
+                            <span style={{ fontSize: 10, marginLeft: 6, background: food.type === "nonveg" ? C.red + "22" : food.type === "egg" ? C.yellow + "22" : C.accent + "22", color: food.type === "nonveg" ? C.red : food.type === "egg" ? C.yellow : C.accent, borderRadius: 4, padding: "1px 6px" }}>
+                              {food.type === "nonveg" ? "Non-Veg" : food.type === "egg" ? "Egg" : "Veg"}
+                            </span>
+                          </div>
+                          <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginTop: 2 }}>P:{food.protein}g · C:{food.carbs}g · F:{food.fat}g · {food.category}</div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.orange }}>{food.cal}</div>
-                          <button onClick={() => { addFood(food); }} style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: "6px 10px", cursor: "pointer", color: C.accent, fontFamily: "'Bebas Neue'", fontSize: 13 }}>+ADD</button>
+                          <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.orange, minWidth: 30 }}>{food.cal}</div>
+                          <button onClick={() => addFood(food)} style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 6, padding: "6px 10px", cursor: "pointer", color: C.accent, fontFamily: "'Bebas Neue'", fontSize: 12 }}>+ADD</button>
                         </div>
                       </div>
                     ))}
                   </div>
+                </>
+              )}
+
+              {/* GUIDE TAB — BEGINNER MACRO GUIDE */}
+              {nutTab === "guide" && (
+                <>
+                  <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>Beginners ke liye simple guide — Protein, Carbs, Fat kya hota hai</div>
+                  {MACRO_GUIDE.map((macro, idx) => (
+                    <div key={idx} style={{ background: C.card, border: `1px solid ${macro.color}33`, borderRadius: 12, padding: 16, marginBottom: 14 }}>
+                      <button onClick={() => setExpandedMacro(expandedMacro === idx ? null : idx)}
+                        style={{ width: "100%", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ width: 44, height: 44, background: `${macro.color}22`, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{macro.icon}</div>
+                            <div>
+                              <div style={{ fontSize: 18, color: macro.color }}>{macro.name}</div>
+                              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>{macro.hindi}</div>
+                            </div>
+                          </div>
+                          <div style={{ color: C.muted, fontSize: 18 }}>{expandedMacro === idx ? "▲" : "▼"}</div>
+                        </div>
+                      </button>
+
+                      {expandedMacro === idx && (
+                        <div style={{ marginTop: 14, borderTop: `1px solid ${C.border}`, paddingTop: 14 }}>
+                          <div style={{ background: `${macro.color}11`, borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: macro.color, marginBottom: 4, fontWeight: 600 }}>Kya hai?</div>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.text, lineHeight: 1.6 }}>{macro.what}</div>
+                          </div>
+                          <div style={{ background: C.surface, borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.yellow, marginBottom: 4, fontWeight: 600 }}>Gym ke liye kyun zaroori?</div>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.text, lineHeight: 1.6 }}>{macro.why}</div>
+                          </div>
+                          <div style={{ background: C.surface, borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 4, fontWeight: 600 }}>Kitna khana chahiye?</div>
+                            <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.text }}>{macro.how}</div>
+                          </div>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <div style={{ flex: 1, background: C.surface, borderRadius: 8, padding: 10 }}>
+                              <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.accent, marginBottom: 6 }}>🥦 Veg Sources</div>
+                              {macro.sources_veg.map(s => <div key={s} style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.text, padding: "2px 0" }}>• {s}</div>)}
+                            </div>
+                            {dietType !== "veg" && (
+                              <div style={{ flex: 1, background: C.surface, borderRadius: 8, padding: 10 }}>
+                                <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.red, marginBottom: 6 }}>🍗 Non-Veg Sources</div>
+                                {macro.sources_nonveg.map(s => <div key={s} style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.text, padding: "2px 0" }}>• {s}</div>)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {/* MEAL TIMING TAB */}
+              {nutTab === "timing" && (
+                <>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                    {[["veg","🥦 Veg"],["nonveg","🍗 Non-Veg"]].map(([v, l]) => (
+                      <button key={v} onClick={() => setMealTimingDiet(v)} style={{ flex: 1, background: mealTimingDiet === v ? C.accentDim : C.card, border: `1px solid ${mealTimingDiet === v ? C.accent : C.border}`, borderRadius: 8, padding: "8px", cursor: "pointer", color: mealTimingDiet === v ? C.accent : C.muted, fontFamily: "'Outfit'", fontSize: 12 }}>{l}</button>
+                    ))}
+                  </div>
+                  {MEAL_TIMING.map((meal, i) => (
+                    <div key={i} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                        <div style={{ fontSize: 24 }}>{meal.icon}</div>
+                        <div>
+                          <div style={{ fontSize: 16, color: C.accent }}>{meal.label}</div>
+                          <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{meal.time}</div>
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: 8 }}>
+                        {(mealTimingDiet === "veg" ? meal.veg : meal.nonveg).map((item, j) => (
+                          <div key={j} style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.text, padding: "3px 0", display: "flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ color: C.accent, fontSize: 10 }}>●</span> {item}
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ background: `${C.yellow}11`, borderRadius: 6, padding: "6px 10px", fontFamily: "'Outfit'", fontSize: 12, color: C.yellow, borderLeft: `3px solid ${C.yellow}` }}>
+                        💡 {meal.tip}
+                      </div>
+                    </div>
+                  ))}
                 </>
               )}
 
@@ -799,7 +1038,6 @@ export default function FitTrack() {
                         </div>
                       ))}
                     </div>
-
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginBottom: 8 }}>GENDER</div>
                       <div style={{ display: "flex", gap: 8 }}>
@@ -808,28 +1046,24 @@ export default function FitTrack() {
                         ))}
                       </div>
                     </div>
-
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginBottom: 8 }}>ACTIVITY LEVEL</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        {[["sedentary","🪑 Sedentary (no exercise)"],["light","🚶 Light (1-3 days/week)"],["moderate","🏃 Moderate (3-5 days/week)"],["active","💪 Active (6-7 days/week)"],["very_active","🔥 Very Active (2x/day)"]].map(([v, l]) => (
+                        {[["sedentary","🪑 Sedentary — koi exercise nahi"],["light","🚶 Light — hafte 1-3 din"],["moderate","🏃 Moderate — hafte 3-5 din"],["active","💪 Active — hafte 6-7 din"],["very_active","🔥 Very Active — din mein 2 baar"]].map(([v, l]) => (
                           <button key={v} onClick={() => setNutProfile(p => ({ ...p, activity: v }))} style={{ background: nutProfile.activity === v ? C.accentDim : C.surface, border: `1px solid ${nutProfile.activity === v ? C.accent : C.border}`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", color: nutProfile.activity === v ? C.accent : C.muted, fontFamily: "'Outfit'", fontSize: 12, textAlign: "left" }}>{l}</button>
                         ))}
                       </div>
                     </div>
-
                     <div style={{ marginBottom: 16 }}>
                       <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginBottom: 8 }}>GOAL</div>
                       <div style={{ display: "flex", gap: 8 }}>
-                        {[["lose","⬇️ Lose"],["maintain","⚖️ Maintain"],["gain","⬆️ Gain"]].map(([v, l]) => (
-                          <button key={v} onClick={() => setNutProfile(p => ({ ...p, goal: v }))} style={{ flex: 1, background: nutProfile.goal === v ? C.accentDim : C.surface, border: `1px solid ${nutProfile.goal === v ? C.accent : C.border}`, borderRadius: 8, padding: "10px 6px", cursor: "pointer", color: nutProfile.goal === v ? C.accent : C.muted, fontFamily: "'Outfit'", fontSize: 12 }}>{l}</button>
+                        {[["lose","⬇️ Weight Lose"],["maintain","⚖️ Maintain"],["gain","⬆️ Muscle Gain"]].map(([v, l]) => (
+                          <button key={v} onClick={() => setNutProfile(p => ({ ...p, goal: v }))} style={{ flex: 1, background: nutProfile.goal === v ? C.accentDim : C.surface, border: `1px solid ${nutProfile.goal === v ? C.accent : C.border}`, borderRadius: 8, padding: "10px 4px", cursor: "pointer", color: nutProfile.goal === v ? C.accent : C.muted, fontFamily: "'Outfit'", fontSize: 11 }}>{l}</button>
                         ))}
                       </div>
                     </div>
-
-                    <button onClick={calculateTargets} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "14px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 20, letterSpacing: 2 }}>🧮 CALCULATE MY TARGETS</button>
+                    <button onClick={calculateTargets} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "14px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 20, letterSpacing: 2 }}>🧮 CALCULATE TARGETS</button>
                   </div>
-
                   {nutTargets && (
                     <div style={{ background: C.card, border: `1px solid ${C.accent}33`, borderRadius: 12, padding: 20 }}>
                       <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>YOUR DAILY TARGETS</div>
@@ -909,14 +1143,14 @@ export default function FitTrack() {
               </div>
               <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, marginBottom: 16 }}>
                 <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 12 }}>ALL FEATURES</div>
-                {[["📅","Weekly Planner","Mon-Sun ka schedule"],["💪","7 Muscle Groups","105 exercises"],["⏱️","Rest Timer","Countdown + beep"],["🏆","PR Tracker","Personal records"],["🥗","Nutrition","Calorie + macro calculator"],["📈","Body Progress","Measurements & charts"],["💾","Auto Save","Sab kuch save hota hai"]].map(([icon,title,desc]) => (
+                {[["📅","Weekly Planner","Mon-Sun ka schedule"],["💪","7 Muscle Groups","105 exercises"],["⏱️","Rest Timer","Countdown + beep"],["🏆","PR Tracker","Personal records"],["🥗","Nutrition","Calorie + macro + meal timing"],["💧","Water Tracker","Daily 8 glass goal"],["🔥","Calorie Burn","Workout se kitna burn hua"],["📚","Beginner Guide","Macros simply samjhao"],["📈","Body Progress","Measurements & charts"],["💾","Auto Save","Sab kuch save"]].map(([icon,title,desc]) => (
                   <div key={title} style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-                    <span style={{ fontSize: 18 }}>{icon}</span>
+                    <span style={{ fontSize: 16 }}>{icon}</span>
                     <div><div style={{ fontSize: 13, color: C.text }}>{title}</div><div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>{desc}</div></div>
                   </div>
                 ))}
               </div>
-              <button onClick={() => { if (window.confirm("Saara data delete hoga?")) { localStorage.clear(); setHistory([]); setStreak(0); setMemberName(""); setNameInput(""); setPrs({}); setBodyLogs([]); setWeekPlan(DEFAULT_PLAN); setNutTargets(null); setFoodLog({ date: new Date().toLocaleDateString("en-IN"), items: [] }); showToast("Reset ho gaya!", "error"); } }} style={{ width: "100%", background: "transparent", border: `1px solid ${C.red}44`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.red, fontFamily: "'Outfit'", fontSize: 14 }}>🗑️ Reset All Data</button>
+              <button onClick={() => { if (window.confirm("Saara data delete hoga?")) { localStorage.clear(); setHistory([]); setStreak(0); setMemberName(""); setNameInput(""); setPrs({}); setBodyLogs([]); setWeekPlan(DEFAULT_PLAN); setNutTargets(null); setFoodLog({ date: new Date().toLocaleDateString("en-IN"), items: [] }); setWaterCount(0); setCaloriesBurned(0); showToast("Reset!", "error"); } }} style={{ width: "100%", background: "transparent", border: `1px solid ${C.red}44`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.red, fontFamily: "'Outfit'", fontSize: 14 }}>🗑️ Reset All Data</button>
             </div>
           )}
         </main>
