@@ -5,10 +5,15 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  updatePassword,
+  updateEmail,
+  sendPasswordResetEmail,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+  sendEmailVerification
 } from "firebase/auth";
 
-// ── WORKOUT DATA ──────────────────────────────────────────────────────────────
 const DEMO_WORKOUTS = {
   Chest: {
     Beginner: [
@@ -195,14 +200,21 @@ const C = {
   muted: "#5a5a78", red: "#ff4466", yellow: "#ffcc00", blue: "#4488ff", orange: "#ff8844",
 };
 
-// ── USER DATA STORAGE (per user) ──────────────────────────────────────────────
 const userStorage = {
-  key: (uid, k) => `ft_${uid}_${k}`,
   get: (uid, k) => { try { return JSON.parse(localStorage.getItem(`ft_${uid}_${k}`)) } catch { return null } },
   set: (uid, k, v) => localStorage.setItem(`ft_${uid}_${k}`, JSON.stringify(v)),
-  clear: (uid) => {
-    Object.keys(localStorage).filter(k => k.startsWith(`ft_${uid}_`)).forEach(k => localStorage.removeItem(k));
-  }
+};
+
+const FIREBASE_ERRORS = {
+  "auth/email-already-in-use": "Yeh email pehle se registered hai!",
+  "auth/invalid-email": "Valid email daalo",
+  "auth/weak-password": "Password kam se kam 6 characters ka ho",
+  "auth/user-not-found": "Account nahi mila",
+  "auth/wrong-password": "Galat password!",
+  "auth/invalid-credential": "Email ya password galat hai",
+  "auth/requires-recent-login": "Security ke liye pehle logout karke dobara login karo",
+  "auth/too-many-requests": "Bahut zyada attempts — thodi der baad try karo",
+  "auth/email-already-exists": "Yeh email pehle se use ho rahi hai",
 };
 
 // ── REST TIMER ────────────────────────────────────────────────────────────────
@@ -254,99 +266,268 @@ function RestTimer({ seconds, onClose }) {
   );
 }
 
-// ── LOGIN SCREEN ──────────────────────────────────────────────────────────────
+// ── INPUT FIELD COMPONENT ─────────────────────────────────────────────────────
+function InputField({ label, type = "text", value, onChange, placeholder, note }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>{label}</div>
+      <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none" }} />
+      {note && <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginTop: 4 }}>{note}</div>}
+    </div>
+  );
+}
+
+// ── AUTH SCREEN ───────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
-  const [mode, setMode] = useState("login"); // login | signup
+  const [mode, setMode] = useState("login"); // login | signup | forgot
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async () => {
-    setError(""); setLoading(true);
+    setError(""); setSuccess(""); setLoading(true);
     try {
       if (mode === "signup") {
-        if (!name) { setError("Naam daalo!"); setLoading(false); return; }
+        if (!name.trim()) { setError("Naam daalo!"); setLoading(false); return; }
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(cred.user, { displayName: name });
+        await updateProfile(cred.user, { displayName: name.trim() });
+        await sendEmailVerification(cred.user);
         onLogin(cred.user);
-      } else {
+      } else if (mode === "login") {
         const cred = await signInWithEmailAndPassword(auth, email, password);
         onLogin(cred.user);
+      } else if (mode === "forgot") {
+        await sendPasswordResetEmail(auth, email);
+        setSuccess(`Password reset email bhej diya! ${email} check karo 📧`);
+        setLoading(false); return;
       }
     } catch (e) {
-      const msgs = {
-        "auth/email-already-in-use": "Yeh email pehle se registered hai!",
-        "auth/invalid-email": "Valid email daalo",
-        "auth/weak-password": "Password kam se kam 6 characters ka ho",
-        "auth/user-not-found": "Account nahi mila — pehle signup karo",
-        "auth/wrong-password": "Galat password!",
-        "auth/invalid-credential": "Email ya password galat hai",
-      };
-      setError(msgs[e.code] || "Kuch gadbad hui — try again");
+      setError(FIREBASE_ERRORS[e.code] || "Kuch gadbad hui — try again");
     }
     setLoading(false);
   };
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'Bebas Neue', sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+        input:focus { border-color: ${C.accent} !important; outline: none; }
+      `}</style>
 
-      {/* BG */}
       <div style={{ position: "fixed", inset: 0, backgroundImage: `linear-gradient(${C.border}22 1px, transparent 1px), linear-gradient(90deg, ${C.border}22 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
-      <div style={{ position: "fixed", top: -200, left: "50%", transform: "translateX(-50%)", width: 600, height: 400, background: `radial-gradient(circle, ${C.accent}06 0%, transparent 70%)`, pointerEvents: "none" }} />
+      <div style={{ position: "fixed", top: -100, left: "50%", transform: "translateX(-50%)", width: 500, height: 300, background: `radial-gradient(circle, ${C.accent}07 0%, transparent 70%)`, pointerEvents: "none" }} />
 
-      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 400 }}>
-        {/* Logo */}
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 400, animation: "slideUp 0.4s ease" }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ fontSize: 48, letterSpacing: 4, color: C.accent, lineHeight: 1 }}>FITTRACK</div>
-          <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.muted, marginTop: 6 }}>Your Personal Gym Companion 💪</div>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.muted, marginTop: 6 }}>
+            {mode === "forgot" ? "🔑 Password Reset" : "Your Personal Gym Companion 💪"}
+          </div>
         </div>
 
-        {/* Card */}
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28 }}>
-          {/* Tab Switch */}
-          <div style={{ display: "flex", gap: 6, marginBottom: 24, background: C.surface, borderRadius: 10, padding: 4 }}>
-            {[["login", "LOGIN"], ["signup", "SIGN UP"]].map(([m, l]) => (
-              <button key={m} onClick={() => { setMode(m); setError(""); }} style={{ flex: 1, background: mode === m ? C.accent : "transparent", border: "none", borderRadius: 8, padding: "10px", cursor: "pointer", color: mode === m ? "#000" : C.muted, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, transition: "all 0.2s" }}>{l}</button>
-            ))}
-          </div>
 
-          {/* Fields */}
-          {mode === "signup" && (
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>FULL NAME</div>
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Apna naam daalo" style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none" }} />
+          {mode !== "forgot" && (
+            <div style={{ display: "flex", gap: 6, marginBottom: 24, background: C.surface, borderRadius: 10, padding: 4 }}>
+              {[["login","🔐 LOGIN"],["signup","🚀 SIGN UP"]].map(([m, l]) => (
+                <button key={m} onClick={() => { setMode(m); setError(""); setSuccess(""); }} style={{ flex: 1, background: mode === m ? C.accent : "transparent", border: "none", borderRadius: 8, padding: "10px", cursor: "pointer", color: mode === m ? "#000" : C.muted, fontFamily: "'Bebas Neue'", fontSize: 15, letterSpacing: 1, transition: "all 0.2s" }}>{l}</button>
+              ))}
             </div>
           )}
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>EMAIL</div>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none" }} />
-          </div>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>PASSWORD</div>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters" style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none" }} onKeyDown={e => e.key === "Enter" && handleSubmit()} />
-          </div>
+
+          {mode === "forgot" && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 20, color: C.accent, marginBottom: 8 }}>PASSWORD RESET</div>
+              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>Apna registered email daalo — reset link bhej denge</div>
+            </div>
+          )}
+
+          {mode === "signup" && <InputField label="FULL NAME" value={name} onChange={setName} placeholder="Apna naam daalo" />}
+          <InputField label="EMAIL" type="email" value={email} onChange={setEmail} placeholder="email@example.com" />
+          {mode !== "forgot" && <InputField label="PASSWORD" type="password" value={password} onChange={setPassword} placeholder="Min 6 characters" note={mode === "signup" ? "Kam se kam 6 characters" : ""} />}
 
           {error && <div style={{ background: `${C.red}22`, border: `1px solid ${C.red}44`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.red }}>⚠️ {error}</div>}
+          {success && <div style={{ background: `${C.accent}22`, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.accent }}>✅ {success}</div>}
 
           <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", background: loading ? C.border : C.accent, border: "none", borderRadius: 10, padding: "14px", cursor: loading ? "not-allowed" : "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 20, letterSpacing: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            {loading ? <><div style={{ width: 18, height: 18, border: "2px solid #000", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />LOADING...</> : mode === "login" ? "🔐 LOGIN" : "🚀 CREATE ACCOUNT"}
+            {loading ? <><div style={{ width: 18, height: 18, border: "2px solid #000", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />LOADING...</> :
+              mode === "login" ? "LOGIN →" : mode === "signup" ? "CREATE ACCOUNT →" : "SEND RESET EMAIL 📧"}
           </button>
 
-          <div style={{ textAlign: "center", marginTop: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>
-            {mode === "login" ? "Account nahi hai? " : "Pehle se account hai? "}
-            <button onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>
-              {mode === "login" ? "Sign Up karo" : "Login karo"}
+          <div style={{ textAlign: "center", marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+            {mode === "login" && (
+              <>
+                <button onClick={() => { setMode("forgot"); setError(""); setSuccess(""); }} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>
+                  🔑 Password bhool gaye?
+                </button>
+                <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>
+                  Account nahi hai? <button onClick={() => { setMode("signup"); setError(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>Sign Up karo</button>
+                </div>
+              </>
+            )}
+            {mode === "signup" && (
+              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>
+                Pehle se account hai? <button onClick={() => { setMode("login"); setError(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>Login karo</button>
+              </div>
+            )}
+            {mode === "forgot" && (
+              <button onClick={() => { setMode("login"); setError(""); setSuccess(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>
+                ← Wapas Login pe jao
+              </button>
+            )}
+          </div>
+        </div>
+        <div style={{ textAlign: "center", marginTop: 16, fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>🔒 Firebase Authentication se secure</div>
+      </div>
+    </div>
+  );
+}
+
+// ── PROFILE EDIT SCREEN ───────────────────────────────────────────────────────
+function ProfileEditScreen({ user, onBack, onUpdate, showToast }) {
+  const [tab, setTab] = useState("info"); // info | password | email
+  const [newName, setNewName] = useState(user.displayName || "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [newEmail, setNewEmail] = useState(user.email || "");
+  const [emailPassword, setEmailPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const reauth = async (password) => {
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+  };
+
+  const saveName = async () => {
+    if (!newName.trim()) { setError("Naam khali nahi ho sakta!"); return; }
+    setLoading(true); setError(""); setSuccess("");
+    try {
+      await updateProfile(user, { displayName: newName.trim() });
+      onUpdate();
+      setSuccess("Naam update ho gaya! ✅");
+      showToast("Naam save ho gaya! ✅");
+    } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
+    setLoading(false);
+  };
+
+  const savePassword = async () => {
+    setError(""); setSuccess("");
+    if (!currentPassword) { setError("Purana password daalo!"); return; }
+    if (newPassword.length < 6) { setError("Naya password kam se kam 6 characters ka ho!"); return; }
+    if (newPassword !== confirmPassword) { setError("Dono passwords match nahi kar rahe!"); return; }
+    setLoading(true);
+    try {
+      await reauth(currentPassword);
+      await updatePassword(user, newPassword);
+      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+      setSuccess("Password change ho gaya! ✅");
+      showToast("Password update ho gaya! 🔒");
+    } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
+    setLoading(false);
+  };
+
+  const saveEmail = async () => {
+    setError(""); setSuccess("");
+    if (!emailPassword) { setError("Confirm karne ke liye password daalo!"); return; }
+    if (!newEmail.includes("@")) { setError("Valid email daalo!"); return; }
+    setLoading(true);
+    try {
+      await reauth(emailPassword);
+      await updateEmail(user, newEmail);
+      await sendEmailVerification(user);
+      setSuccess("Email update ho gaya! Verify karo inbox mein ✅");
+      showToast("Email update ho gaya! 📧");
+    } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
+    setLoading(false);
+  };
+
+  const sendForgotEmail = async () => {
+    setLoading(true); setError(""); setSuccess("");
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      setSuccess(`Reset email bheja ${user.email} pe! 📧`);
+      showToast("Reset email bheja! 📧");
+    } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
+    setLoading(false);
+  };
+
+  return (
+    <div style={{ padding: "0" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <button onClick={onBack} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.muted, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13 }}>← Back</button>
+        <div style={{ fontSize: 22 }}>EDIT PROFILE</div>
+      </div>
+
+      {/* Tab Selector */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
+        {[["info","👤 Info"],["password","🔒 Password"],["email","📧 Email"]].map(([t, l]) => (
+          <button key={t} onClick={() => { setTab(t); setError(""); setSuccess(""); }} style={{ flex: 1, background: tab === t ? C.accentDim : C.card, border: `1px solid ${tab === t ? C.accent + "66" : C.border}`, borderRadius: 8, padding: "8px 4px", cursor: "pointer", color: tab === t ? C.accent : C.muted, fontFamily: "'Outfit'", fontSize: 11, fontWeight: 500 }}>{l}</button>
+        ))}
+      </div>
+
+      {error && <div style={{ background: `${C.red}22`, border: `1px solid ${C.red}44`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.red }}>⚠️ {error}</div>}
+      {success && <div style={{ background: `${C.accent}22`, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.accent }}>✅ {success}</div>}
+
+      {/* INFO TAB */}
+      {tab === "info" && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>BASIC INFORMATION</div>
+          <InputField label="DISPLAY NAME" value={newName} onChange={setNewName} placeholder="Apna naam daalo" />
+          <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>EMAIL</div>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", fontFamily: "'Outfit'", fontSize: 14, color: C.muted, marginBottom: 16 }}>{user.email}</div>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginBottom: 16 }}>
+            Email change karne ke liye "Email" tab use karo
+          </div>
+          <button onClick={saveName} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: 1 }}>
+            {loading ? "SAVING..." : "💾 SAVE NAME"}
+          </button>
+        </div>
+      )}
+
+      {/* PASSWORD TAB */}
+      {tab === "password" && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>PASSWORD CHANGE KARO</div>
+          <InputField label="CURRENT PASSWORD" type="password" value={currentPassword} onChange={setCurrentPassword} placeholder="Purana password" />
+          <InputField label="NEW PASSWORD" type="password" value={newPassword} onChange={setNewPassword} placeholder="Naya password (min 6 chars)" note="Kam se kam 6 characters" />
+          <InputField label="CONFIRM NEW PASSWORD" type="password" value={confirmPassword} onChange={setConfirmPassword} placeholder="Dobara naya password" />
+          <button onClick={savePassword} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: 1, marginBottom: 12 }}>
+            {loading ? "SAVING..." : "🔒 CHANGE PASSWORD"}
+          </button>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 8 }}>Purana password yaad nahi?</div>
+            <button onClick={sendForgotEmail} disabled={loading} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>
+              📧 Reset Email Bhejo ({user.email})
             </button>
           </div>
         </div>
+      )}
 
-        <div style={{ textAlign: "center", marginTop: 16, fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>
-          🔒 Firebase se secure login
+      {/* EMAIL TAB */}
+      {tab === "email" && (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>EMAIL CHANGE KARO</div>
+          <div style={{ background: `${C.yellow}11`, border: `1px solid ${C.yellow}33`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 12, color: C.yellow }}>
+            ⚠️ Email change karne ke baad verification email aayega — verify karna padega
+          </div>
+          <InputField label="CURRENT EMAIL" value={user.email} onChange={() => {}} placeholder="" />
+          <InputField label="NEW EMAIL" type="email" value={newEmail} onChange={setNewEmail} placeholder="naya@email.com" />
+          <InputField label="CURRENT PASSWORD (confirm ke liye)" type="password" value={emailPassword} onChange={setEmailPassword} placeholder="Apna password" note="Security ke liye password confirm karna padega" />
+          <button onClick={saveEmail} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: 1 }}>
+            {loading ? "SAVING..." : "📧 UPDATE EMAIL"}
+          </button>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -357,36 +538,31 @@ export default function FitTrack() {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setAuthLoading(false);
-    });
+    const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
     return unsub;
   }, []);
 
-  if (authLoading) {
-    return (
-      <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 36, letterSpacing: 4, color: C.accent }}>FITTRACK</div>
-          <div style={{ width: 32, height: 32, border: `3px solid ${C.accent}`, borderTopColor: "transparent", borderRadius: "50%", margin: "20px auto", animation: "spin 0.8s linear infinite" }} />
-          <style>{`@keyframes spin { to{transform:rotate(360deg)} } * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
-        </div>
+  if (authLoading) return (
+    <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <style>{`@keyframes spin { to{transform:rotate(360deg)} } * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 36, letterSpacing: 4, color: C.accent, fontFamily: "Impact" }}>FITTRACK</div>
+        <div style={{ width: 32, height: 32, border: `3px solid ${C.accent}`, borderTopColor: "transparent", borderRadius: "50%", margin: "20px auto", animation: "spin 0.8s linear infinite" }} />
       </div>
-    );
-  }
+    </div>
+  );
 
   if (!user) return <AuthScreen onLogin={setUser} />;
-
-  return <AppMain user={user} onLogout={() => { signOut(auth); setUser(null); }} />;
+  return <AppMain user={user} onLogout={() => { signOut(auth); setUser(null); }} onUserUpdate={() => setUser({ ...auth.currentUser })} />;
 }
 
-// ── APP MAIN (after login) ────────────────────────────────────────────────────
-function AppMain({ user, onLogout }) {
+// ── APP MAIN ──────────────────────────────────────────────────────────────────
+function AppMain({ user, onLogout, onUserUpdate }) {
   const uid = user.uid;
   const memberName = user.displayName || user.email?.split("@")[0] || "Member";
 
   const [screen, setScreen] = useState("home");
+  const [editingProfile, setEditingProfile] = useState(false);
   const [selectedMuscle, setSelectedMuscle] = useState("Chest");
   const [selectedLevel, setSelectedLevel] = useState("Beginner");
   const [workout, setWorkout] = useState(null);
@@ -411,7 +587,7 @@ function AppMain({ user, onLogout }) {
     return (saved && saved.date === today) ? saved.count : 0;
   });
   const [caloriesBurned, setCaloriesBurned] = useState(() => userStorage.get(uid, "burned") || 0);
-  const [showLogout, setShowLogout] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 2800); };
   const getTodayKey = () => DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
@@ -484,6 +660,7 @@ function AppMain({ user, onLogout }) {
         @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
         .animate-in { animation: slideUp 0.4s ease forwards; }
         .card-hover:hover { border-color: ${C.accent}44 !important; transform: translateY(-1px); transition: all 0.2s; }
+        input:focus { border-color: ${C.accent} !important; }
       `}</style>
 
       <div style={{ position: "fixed", inset: 0, zIndex: 0, backgroundImage: `linear-gradient(${C.border}22 1px, transparent 1px), linear-gradient(90deg, ${C.border}22 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
@@ -491,6 +668,7 @@ function AppMain({ user, onLogout }) {
       {toast && <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: toast.type === "error" ? C.red : C.accent, color: toast.type === "error" ? "#fff" : "#000", padding: "10px 20px", borderRadius: 8, fontFamily: "'Outfit'", fontWeight: 600, fontSize: 14, zIndex: 9999, boxShadow: "0 4px 20px rgba(0,0,0,0.4)", whiteSpace: "nowrap" }}>{toast.msg}</div>}
       {timer && <RestTimer seconds={timer.seconds} onClose={() => setTimer(null)} />}
 
+      {/* PR Modal */}
       {prModal && (
         <div style={{ position: "fixed", inset: 0, background: "#000000dd", zIndex: 1500, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: C.card, borderRadius: 16, padding: 24, width: "min(320px, 90vw)", border: `1px solid ${C.accent}44` }}>
@@ -515,6 +693,7 @@ function AppMain({ user, onLogout }) {
         </div>
       )}
 
+      {/* Video Modal */}
       {activeVideo && (
         <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setActiveVideo(null)}>
           <div style={{ background: C.card, borderRadius: 12, width: "min(500px, 94vw)", padding: 24, textAlign: "center" }} onClick={e => e.stopPropagation()}>
@@ -527,15 +706,15 @@ function AppMain({ user, onLogout }) {
         </div>
       )}
 
-      {/* Logout Modal */}
-      {showLogout && (
-        <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowLogout(false)}>
+      {/* Logout Confirm */}
+      {showLogoutConfirm && (
+        <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowLogoutConfirm(false)}>
           <div style={{ background: C.card, borderRadius: 16, padding: 28, width: "min(300px, 90vw)", border: `1px solid ${C.border}`, textAlign: "center" }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>👋</div>
             <div style={{ fontSize: 20, color: C.text, marginBottom: 6 }}>LOGOUT KARNA HAI?</div>
-            <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 20 }}>{memberName}</div>
+            <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 20 }}>{memberName} · {user.email}</div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={() => setShowLogout(false)} style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>Cancel</button>
+              <button onClick={() => setShowLogoutConfirm(false)} style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>Cancel</button>
               <button onClick={onLogout} style={{ flex: 1, background: C.red, border: "none", borderRadius: 8, padding: "12px", cursor: "pointer", color: "#fff", fontFamily: "'Bebas Neue'", fontSize: 16 }}>LOGOUT</button>
             </div>
           </div>
@@ -544,7 +723,6 @@ function AppMain({ user, onLogout }) {
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
-        {/* Header */}
         <header style={{ padding: "20px 20px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 28, letterSpacing: 3, color: C.accent, lineHeight: 1 }}>FITTRACK</div>
@@ -555,13 +733,12 @@ function AppMain({ user, onLogout }) {
               <div style={{ fontSize: 18, color: C.accent, lineHeight: 1 }}>🔥{streak}</div>
               <div style={{ fontFamily: "'Outfit'", fontSize: 10, color: C.muted }}>STREAK</div>
             </div>
-            <button onClick={() => setShowLogout(true)} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 10px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 12 }}>⚙️</button>
           </div>
         </header>
 
         <nav style={{ display: "flex", padding: "16px 20px 0", gap: 3 }}>
-          {[["home","🏠","HOME"],["plan","📅","PLAN"],["history","📊","LOG"],["prs","🏆","PRs"],["settings","👤","PROFILE"]].map(([s, icon, label]) => (
-            <button key={s} onClick={() => setScreen(s === "home" && screen === "workout" ? "workout" : s)}
+          {[["home","🏠","HOME"],["plan","📅","PLAN"],["history","📊","LOG"],["prs","🏆","PRs"],["profile","👤","PROFILE"]].map(([s, icon, label]) => (
+            <button key={s} onClick={() => { setScreen(s === "home" && screen === "workout" ? "workout" : s); setEditingProfile(false); }}
               style={{ flex: 1, background: (screen === s || (s === "home" && screen === "workout")) ? C.accentDim : "transparent", border: `1px solid ${(screen === s || (s === "home" && screen === "workout")) ? C.accent + "66" : C.border}`, borderRadius: 8, padding: "7px 2px", cursor: "pointer", color: (screen === s || (s === "home" && screen === "workout")) ? C.accent : C.muted, fontSize: 9, letterSpacing: 1, fontFamily: "'Bebas Neue'", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
               <span style={{ fontSize: 13 }}>{icon}</span>{label}
             </button>
@@ -582,8 +759,6 @@ function AppMain({ user, onLogout }) {
                   <button onClick={() => handleGenerate(todayMuscle)} style={{ background: MUSCLE_COLORS[todayMuscle], border: "none", borderRadius: 8, padding: "10px 16px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 14 }}>START ⚡</button>
                 </div>
               )}
-
-              {/* Water Quick */}
               <div style={{ background: "#4488ff11", border: "1px solid #4488ff33", borderRadius: 10, padding: "12px 14px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>💧 WATER</div>
@@ -591,7 +766,6 @@ function AppMain({ user, onLogout }) {
                 </div>
                 <button onClick={addWater} style={{ background: `${C.blue}22`, border: `1px solid ${C.blue}44`, borderRadius: 8, padding: "8px 14px", cursor: "pointer", color: C.blue, fontFamily: "'Bebas Neue'", fontSize: 14 }}>+ ADD</button>
               </div>
-
               <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</div>
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 13, color: C.muted, letterSpacing: 2, marginBottom: 10, fontFamily: "'Outfit'" }}>SELECT MUSCLE GROUP</div>
@@ -678,7 +852,6 @@ function AppMain({ user, onLogout }) {
                   <div style={{ fontSize: 28 }}>🔥</div>
                   <div style={{ fontSize: 22, color: C.accent }}>WORKOUT COMPLETE!</div>
                   <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.orange, marginTop: 4 }}>~{WORKOUT_BURN[selectedMuscle]?.[selectedLevel]} kcal burned!</div>
-                  <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>Streak: {streak} days 🔥</div>
                 </div>
               )}
             </div>
@@ -694,7 +867,7 @@ function AppMain({ user, onLogout }) {
                 </button>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
-                {DAYS.map((d, i) => {
+                {DAYS.map((d) => {
                   const isToday = d === todayKey; const muscle = editingPlan ? (tempPlan[d] || "Rest Day") : weekPlan[d]; const color = MUSCLE_COLORS[muscle] || C.muted;
                   return (
                     <div key={d} style={{ background: C.card, border: `1px solid ${isToday ? C.accent : color + "33"}`, borderRadius: 12, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -755,48 +928,88 @@ function AppMain({ user, onLogout }) {
             <div className="animate-in">
               <div style={{ fontSize: 22, marginBottom: 4 }}>PERSONAL RECORDS</div>
               <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 20 }}>{Object.keys(prs).length} exercises logged</div>
-              {Object.keys(prs).length === 0 ? (
-                <div style={{ textAlign: "center", padding: "40px", color: C.muted, fontFamily: "'Outfit'" }}><div style={{ fontSize: 48 }}>🏆</div><div style={{ marginTop: 12 }}>Workout karo aur weight log karo!</div></div>
-              ) : Object.entries(prs).map(([name, pr]) => (
-                <div key={name} className="card-hover" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div><div style={{ fontSize: 16, color: C.text }}>{name}</div><div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{pr.date}</div></div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 22, color: C.accent }}>{pr.weight}<span style={{ fontSize: 13, color: C.muted }}>kg</span></div>
-                      <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>× {pr.reps} reps</div>
+              {Object.keys(prs).length === 0 ? <div style={{ textAlign: "center", padding: "40px", color: C.muted, fontFamily: "'Outfit'" }}><div style={{ fontSize: 48 }}>🏆</div><div style={{ marginTop: 12 }}>Workout karo aur weight log karo!</div></div>
+                : Object.entries(prs).map(([name, pr]) => (
+                  <div key={name} className="card-hover" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div><div style={{ fontSize: 16, color: C.text }}>{name}</div><div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{pr.date}</div></div>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 22, color: C.accent }}>{pr.weight}<span style={{ fontSize: 13, color: C.muted }}>kg</span></div>
+                        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>× {pr.reps} reps</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
 
           {/* PROFILE */}
-          {screen === "settings" && (
+          {screen === "profile" && (
             <div className="animate-in">
-              <div style={{ fontSize: 22, marginBottom: 20 }}>PROFILE</div>
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, marginBottom: 16, textAlign: "center" }}>
-                <div style={{ width: 70, height: 70, background: C.accentDim, border: `2px solid ${C.accent}`, borderRadius: "50%", margin: "0 auto 12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
-                  {memberName.charAt(0).toUpperCase()}
-                </div>
-                <div style={{ fontSize: 22, color: C.accent }}>{memberName}</div>
-                <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginTop: 4 }}>{user.email}</div>
-                <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginTop: 8 }}>
-                  Member since {new Date(user.metadata?.creationTime).toLocaleDateString("en-IN")}
-                </div>
-              </div>
+              {editingProfile ? (
+                <ProfileEditScreen user={user} onBack={() => setEditingProfile(false)} onUpdate={onUserUpdate} showToast={showToast} />
+              ) : (
+                <>
+                  <div style={{ fontSize: 22, marginBottom: 20 }}>MY PROFILE</div>
 
-              <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-                {[["🔥", "Streak", streak], ["💪", "Workouts", history.length], ["🏆", "PRs", Object.keys(prs).length]].map(([icon, label, val]) => (
-                  <div key={label} style={{ flex: 1, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 10px", textAlign: "center" }}>
-                    <div style={{ fontSize: 20 }}>{icon}</div>
-                    <div style={{ fontSize: 22, color: C.accent }}>{val}</div>
-                    <div style={{ fontFamily: "'Outfit'", fontSize: 10, color: C.muted }}>{label}</div>
+                  {/* Avatar & Info */}
+                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24, marginBottom: 16, textAlign: "center" }}>
+                    <div style={{ width: 80, height: 80, background: C.accentDim, border: `2px solid ${C.accent}`, borderRadius: "50%", margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontFamily: "'Bebas Neue'" }}>
+                      {memberName.charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 24, color: C.accent }}>{memberName}</div>
+                    <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginTop: 4 }}>{user.email}</div>
+                    {user.emailVerified ? (
+                      <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.accent, marginTop: 6 }}>✅ Email verified</div>
+                    ) : (
+                      <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.yellow, marginTop: 6 }}>⚠️ Email verify nahi hua</div>
+                    )}
+                    <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginTop: 4 }}>
+                      Member since {user.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString("en-IN") : "N/A"}
+                    </div>
                   </div>
-                ))}
-              </div>
 
-              <button onClick={() => setShowLogout(true)} style={{ width: "100%", background: `${C.red}22`, border: `1px solid ${C.red}44`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.red, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, marginBottom: 10 }}>🚪 LOGOUT</button>
+                  {/* Stats */}
+                  <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+                    {[["🔥","Streak",streak],["💪","Workouts",history.length],["🏆","PRs",Object.keys(prs).length]].map(([icon,label,val]) => (
+                      <div key={label} style={{ flex: 1, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 10px", textAlign: "center" }}>
+                        <div style={{ fontSize: 20 }}>{icon}</div>
+                        <div style={{ fontSize: 22, color: C.accent }}>{val}</div>
+                        <div style={{ fontFamily: "'Outfit'", fontSize: 10, color: C.muted }}>{label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <button onClick={() => setEditingProfile(true)} style={{ width: "100%", background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.accent, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 20 }}>✏️</span>
+                      <div>
+                        <div>EDIT PROFILE</div>
+                        <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Naam, email, password change karo</div>
+                      </div>
+                    </button>
+
+                    <button onClick={async () => {
+                      try { await sendPasswordResetEmail(auth, user.email); showToast("Reset email bheja! 📧"); } catch (e) { showToast("Error aa gayi!", "error"); }
+                    }} style={{ width: "100%", background: `${C.blue}11`, border: `1px solid ${C.blue}33`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.blue, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 20 }}>🔑</span>
+                      <div>
+                        <div>FORGOT PASSWORD</div>
+                        <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Reset email bhejenge {user.email} pe</div>
+                      </div>
+                    </button>
+
+                    <button onClick={() => setShowLogoutConfirm(true)} style={{ width: "100%", background: `${C.red}11`, border: `1px solid ${C.red}33`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.red, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 20 }}>🚪</span>
+                      <div>
+                        <div>LOGOUT</div>
+                        <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Account se bahar jao</div>
+                      </div>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </main>
