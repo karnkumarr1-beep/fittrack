@@ -194,6 +194,10 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DEFAULT_PLAN = { Mon: "Chest", Tue: "Back", Wed: "Shoulders", Thu: "Arms", Fri: "Legs", Sat: "Core", Sun: "Rest Day" };
 const MUSCLE_COLORS = { "Chest": "#ff6644", "Back": "#4488ff", "Shoulders": "#aa44ff", "Arms": "#ff44aa", "Legs": "#ffaa00", "Core": "#00ccff", "Full Body": "#00ff88", "Rest Day": "#333355" };
 
+// Water constants — in ML
+const WATER_GOAL_ML = 3000; // 3 liters
+const WATER_INCREMENTS = [150, 250, 500, 750]; // ml options
+
 const C = {
   bg: "#0a0a0f", surface: "#111118", card: "#16161f", border: "#1e1e2e",
   accent: "#00ff88", accentDim: "#00ff8830", text: "#e8e8f0",
@@ -214,8 +218,155 @@ const FIREBASE_ERRORS = {
   "auth/invalid-credential": "Email ya password galat hai",
   "auth/requires-recent-login": "Security ke liye pehle logout karke dobara login karo",
   "auth/too-many-requests": "Bahut zyada attempts — thodi der baad try karo",
-  "auth/email-already-exists": "Yeh email pehle se use ho rahi hai",
 };
+
+// ── WATER TRACKER COMPONENT ───────────────────────────────────────────────────
+function WaterTracker({ waterMl, goalMl, onAdd, onReset, compact = false }) {
+  const pct = Math.min((waterMl / goalMl) * 100, 100);
+  const liters = (waterMl / 1000).toFixed(2);
+  const goalLiters = (goalMl / 1000).toFixed(1);
+  const remaining = Math.max(0, goalMl - waterMl);
+  const remainingL = (remaining / 1000).toFixed(2);
+  const done = waterMl >= goalMl;
+
+  if (compact) {
+    return (
+      <div style={{ background: "#4488ff11", border: `1px solid ${done ? C.accent + "55" : "#4488ff33"}`, borderRadius: 10, padding: "12px 14px", marginBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <div>
+            <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>💧 WATER INTAKE</div>
+            <div style={{ fontSize: 20, color: done ? C.accent : C.blue, lineHeight: 1.2 }}>
+              {liters}L <span style={{ fontSize: 13, color: C.muted }}>/ {goalLiters}L</span>
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            {done ? <div style={{ fontSize: 22 }}>🎉</div> : <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>{remainingL}L baki</div>}
+          </div>
+        </div>
+        <div style={{ height: 6, background: C.border, borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
+          <div style={{ height: "100%", width: `${pct}%`, background: done ? C.accent : C.blue, borderRadius: 3, transition: "width 0.4s ease" }} />
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {WATER_INCREMENTS.map(ml => (
+            <button key={ml} onClick={() => onAdd(ml)} disabled={done} style={{ flex: 1, background: done ? C.border : `${C.blue}22`, border: `1px solid ${done ? C.border : C.blue + "44"}`, borderRadius: 6, padding: "5px 2px", cursor: done ? "not-allowed" : "pointer", color: done ? C.muted : C.blue, fontFamily: "'Outfit'", fontSize: 10, fontWeight: 500 }}>
+              +{ml < 1000 ? ml + "ml" : (ml / 1000) + "L"}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Full version
+  return (
+    <div style={{ background: C.card, border: `1px solid ${done ? C.accent + "44" : C.border}`, borderRadius: 14, padding: 20, marginBottom: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 20, color: done ? C.accent : C.blue }}>💧 WATER INTAKE</div>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>Daily goal: {goalLiters} liters</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 32, color: done ? C.accent : C.blue, lineHeight: 1 }}>{liters}L</div>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>of {goalLiters}L</div>
+        </div>
+      </div>
+
+      {/* Big Progress Bar */}
+      <div style={{ marginBottom: 6 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+          <span style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{pct.toFixed(0)}% complete</span>
+          <span style={{ fontFamily: "'Outfit'", fontSize: 12, color: done ? C.accent : C.blue }}>
+            {done ? "✅ Goal achieved!" : `${remainingL}L remaining`}
+          </span>
+        </div>
+        <div style={{ height: 16, background: C.border, borderRadius: 8, overflow: "hidden", position: "relative" }}>
+          <div style={{ height: "100%", width: `${pct}%`, background: done ? `linear-gradient(90deg, ${C.accent}, ${C.blue})` : `linear-gradient(90deg, ${C.blue}, #66aaff)`, borderRadius: 8, transition: "width 0.4s ease" }} />
+          {/* Milestone markers */}
+          {[25, 50, 75].map(p => (
+            <div key={p} style={{ position: "absolute", top: 0, left: `${p}%`, width: 2, height: "100%", background: C.bg + "88" }} />
+          ))}
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+          {["0", "0.75L", "1.5L", "2.25L", "3L"].map(l => (
+            <span key={l} style={{ fontFamily: "'Outfit'", fontSize: 9, color: C.muted }}>{l}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* Visual Water Bottles */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, justifyContent: "center" }}>
+        {Array.from({ length: 6 }).map((_, i) => {
+          const bottleMl = 500;
+          const filled = waterMl >= (i + 1) * bottleMl;
+          const partial = !filled && waterMl > i * bottleMl;
+          const fillPct = partial ? ((waterMl - i * bottleMl) / bottleMl) * 100 : 0;
+          return (
+            <div key={i} style={{ position: "relative", width: 32, height: 52 }}>
+              <svg width="32" height="52" viewBox="0 0 32 52">
+                {/* Bottle shape */}
+                <path d="M12 2h8v4l2 2v36l-2 2H12l-2-2V8l2-2V2z" fill={C.surface} stroke={filled ? C.blue : C.border} strokeWidth="1.5" />
+                {/* Fill */}
+                {(filled || partial) && (
+                  <clipPath id={`clip${i}`}><path d="M12 2h8v4l2 2v36l-2 2H12l-2-2V8l2-2V2z" /></clipPath>
+                )}
+                {filled && <rect x="0" y="0" width="32" height="52" fill={C.blue} clipPath={`url(#clip${i})`} opacity="0.7" />}
+                {partial && <rect x="0" y={52 - (fillPct / 100) * 44} width="32" height="52" fill={C.blue} clipPath={`url(#clip${i})`} opacity="0.5" />}
+                {/* Label */}
+                <text x="16" y="46" textAnchor="middle" fill={filled ? "#fff" : C.muted} fontSize="7" fontFamily="Outfit">500</text>
+              </svg>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Add Buttons */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 8 }}>KITNA PIYA? TAP KARO:</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8 }}>
+          {[
+            { ml: 150, label: "Chhota\nGlass", icon: "🥛" },
+            { ml: 250, label: "Glass\n250ml", icon: "🥤" },
+            { ml: 500, label: "Bottle\n500ml", icon: "🍶" },
+            { ml: 750, label: "Large\n750ml", icon: "💧" },
+          ].map(({ ml, label, icon }) => (
+            <button key={ml} onClick={() => onAdd(ml)} disabled={done}
+              style={{ background: done ? C.border : `${C.blue}22`, border: `1px solid ${done ? C.border : C.blue + "55"}`, borderRadius: 10, padding: "10px 4px", cursor: done ? "not-allowed" : "pointer", color: done ? C.muted : C.blue, textAlign: "center" }}>
+              <div style={{ fontSize: 20 }}>{icon}</div>
+              <div style={{ fontFamily: "'Bebas Neue'", fontSize: 13, marginTop: 2 }}>+{ml}ml</div>
+              <div style={{ fontFamily: "'Outfit'", fontSize: 9, color: done ? C.muted : C.muted, whiteSpace: "pre-line" }}>{label}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        {[
+          { label: "Piya", value: liters + "L", color: C.blue },
+          { label: "Baki", value: done ? "0L" : remainingL + "L", color: done ? C.accent : C.red },
+          { label: "Progress", value: pct.toFixed(0) + "%", color: done ? C.accent : C.orange },
+        ].map(({ label, value, color }) => (
+          <div key={label} style={{ flex: 1, background: C.surface, borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Outfit'", fontSize: 10, color: C.muted }}>{label}</div>
+            <div style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color }}>{value}</div>
+          </div>
+        ))}
+      </div>
+
+      {done && (
+        <div style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 10, padding: "10px 14px", textAlign: "center", marginBottom: 12 }}>
+          <div style={{ fontSize: 22, marginBottom: 4 }}>🎉</div>
+          <div style={{ fontFamily: "'Bebas Neue'", fontSize: 18, color: C.accent, letterSpacing: 1 }}>DAILY GOAL COMPLETE!</div>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginTop: 2 }}>3 liters pee liye aaj — keep it up! 💪</div>
+        </div>
+      )}
+
+      <button onClick={onReset} style={{ width: "100%", background: "transparent", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 12 }}>
+        🔄 Reset Water Counter
+      </button>
+    </div>
+  );
+}
 
 // ── REST TIMER ────────────────────────────────────────────────────────────────
 function RestTimer({ seconds, onClose }) {
@@ -266,7 +417,6 @@ function RestTimer({ seconds, onClose }) {
   );
 }
 
-// ── INPUT FIELD COMPONENT ─────────────────────────────────────────────────────
 function InputField({ label, type = "text", value, onChange, placeholder, note }) {
   return (
     <div style={{ marginBottom: 14 }}>
@@ -278,9 +428,8 @@ function InputField({ label, type = "text", value, onChange, placeholder, note }
   );
 }
 
-// ── AUTH SCREEN ───────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
-  const [mode, setMode] = useState("login"); // login | signup | forgot
+  const [mode, setMode] = useState("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -305,35 +454,20 @@ function AuthScreen({ onLogin }) {
         setSuccess(`Password reset email bhej diya! ${email} check karo 📧`);
         setLoading(false); return;
       }
-    } catch (e) {
-      setError(FIREBASE_ERRORS[e.code] || "Kuch gadbad hui — try again");
-    }
+    } catch (e) { setError(FIREBASE_ERRORS[e.code] || "Kuch gadbad hui — try again"); }
     setLoading(false);
   };
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: "'Bebas Neue', sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        @keyframes spin { to{transform:rotate(360deg)} }
-        @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
-        input:focus { border-color: ${C.accent} !important; outline: none; }
-      `}</style>
-
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap'); * { box-sizing: border-box; margin: 0; padding: 0; } @keyframes spin { to{transform:rotate(360deg)} }`}</style>
       <div style={{ position: "fixed", inset: 0, backgroundImage: `linear-gradient(${C.border}22 1px, transparent 1px), linear-gradient(90deg, ${C.border}22 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
-      <div style={{ position: "fixed", top: -100, left: "50%", transform: "translateX(-50%)", width: 500, height: 300, background: `radial-gradient(circle, ${C.accent}07 0%, transparent 70%)`, pointerEvents: "none" }} />
-
-      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 400, animation: "slideUp 0.4s ease" }}>
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 400 }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ fontSize: 48, letterSpacing: 4, color: C.accent, lineHeight: 1 }}>FITTRACK</div>
-          <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.muted, marginTop: 6 }}>
-            {mode === "forgot" ? "🔑 Password Reset" : "Your Personal Gym Companion 💪"}
-          </div>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.muted, marginTop: 6 }}>{mode === "forgot" ? "🔑 Password Reset" : "Your Personal Gym Companion 💪"}</div>
         </div>
-
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 16, padding: 28 }}>
-
           {mode !== "forgot" && (
             <div style={{ display: "flex", gap: 6, marginBottom: 24, background: C.surface, borderRadius: 10, padding: 4 }}>
               {[["login","🔐 LOGIN"],["signup","🚀 SIGN UP"]].map(([m, l]) => (
@@ -341,58 +475,30 @@ function AuthScreen({ onLogin }) {
               ))}
             </div>
           )}
-
-          {mode === "forgot" && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 20, color: C.accent, marginBottom: 8 }}>PASSWORD RESET</div>
-              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>Apna registered email daalo — reset link bhej denge</div>
-            </div>
-          )}
-
           {mode === "signup" && <InputField label="FULL NAME" value={name} onChange={setName} placeholder="Apna naam daalo" />}
           <InputField label="EMAIL" type="email" value={email} onChange={setEmail} placeholder="email@example.com" />
-          {mode !== "forgot" && <InputField label="PASSWORD" type="password" value={password} onChange={setPassword} placeholder="Min 6 characters" note={mode === "signup" ? "Kam se kam 6 characters" : ""} />}
-
+          {mode !== "forgot" && <InputField label="PASSWORD" type="password" value={password} onChange={setPassword} placeholder="Min 6 characters" />}
           {error && <div style={{ background: `${C.red}22`, border: `1px solid ${C.red}44`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.red }}>⚠️ {error}</div>}
           {success && <div style={{ background: `${C.accent}22`, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.accent }}>✅ {success}</div>}
-
           <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", background: loading ? C.border : C.accent, border: "none", borderRadius: 10, padding: "14px", cursor: loading ? "not-allowed" : "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 20, letterSpacing: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            {loading ? <><div style={{ width: 18, height: 18, border: "2px solid #000", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />LOADING...</> :
-              mode === "login" ? "LOGIN →" : mode === "signup" ? "CREATE ACCOUNT →" : "SEND RESET EMAIL 📧"}
+            {loading ? <><div style={{ width: 18, height: 18, border: "2px solid #000", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />LOADING...</> : mode === "login" ? "LOGIN →" : mode === "signup" ? "CREATE ACCOUNT →" : "SEND RESET EMAIL 📧"}
           </button>
-
           <div style={{ textAlign: "center", marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-            {mode === "login" && (
-              <>
-                <button onClick={() => { setMode("forgot"); setError(""); setSuccess(""); }} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>
-                  🔑 Password bhool gaye?
-                </button>
-                <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>
-                  Account nahi hai? <button onClick={() => { setMode("signup"); setError(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>Sign Up karo</button>
-                </div>
-              </>
-            )}
-            {mode === "signup" && (
-              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>
-                Pehle se account hai? <button onClick={() => { setMode("login"); setError(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>Login karo</button>
-              </div>
-            )}
-            {mode === "forgot" && (
-              <button onClick={() => { setMode("login"); setError(""); setSuccess(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>
-                ← Wapas Login pe jao
-              </button>
-            )}
+            {mode === "login" && (<>
+              <button onClick={() => { setMode("forgot"); setError(""); setSuccess(""); }} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>🔑 Password bhool gaye?</button>
+              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>Account nahi hai? <button onClick={() => { setMode("signup"); setError(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>Sign Up karo</button></div>
+            </>)}
+            {mode === "signup" && <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted }}>Pehle se account hai? <button onClick={() => { setMode("login"); setError(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>Login karo</button></div>}
+            {mode === "forgot" && <button onClick={() => { setMode("login"); setError(""); setSuccess(""); }} style={{ background: "none", border: "none", color: C.accent, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13, textDecoration: "underline" }}>← Wapas Login pe jao</button>}
           </div>
         </div>
-        <div style={{ textAlign: "center", marginTop: 16, fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>🔒 Firebase Authentication se secure</div>
       </div>
     </div>
   );
 }
 
-// ── PROFILE EDIT SCREEN ───────────────────────────────────────────────────────
 function ProfileEditScreen({ user, onBack, onUpdate, showToast }) {
-  const [tab, setTab] = useState("info"); // info | password | email
+  const [tab, setTab] = useState("info");
   const [newName, setNewName] = useState(user.displayName || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -411,12 +517,7 @@ function ProfileEditScreen({ user, onBack, onUpdate, showToast }) {
   const saveName = async () => {
     if (!newName.trim()) { setError("Naam khali nahi ho sakta!"); return; }
     setLoading(true); setError(""); setSuccess("");
-    try {
-      await updateProfile(user, { displayName: newName.trim() });
-      onUpdate();
-      setSuccess("Naam update ho gaya! ✅");
-      showToast("Naam save ho gaya! ✅");
-    } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
+    try { await updateProfile(user, { displayName: newName.trim() }); onUpdate(); setSuccess("Naam update ho gaya! ✅"); showToast("Naam save ho gaya! ✅"); } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
     setLoading(false);
   };
 
@@ -426,13 +527,7 @@ function ProfileEditScreen({ user, onBack, onUpdate, showToast }) {
     if (newPassword.length < 6) { setError("Naya password kam se kam 6 characters ka ho!"); return; }
     if (newPassword !== confirmPassword) { setError("Dono passwords match nahi kar rahe!"); return; }
     setLoading(true);
-    try {
-      await reauth(currentPassword);
-      await updatePassword(user, newPassword);
-      setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
-      setSuccess("Password change ho gaya! ✅");
-      showToast("Password update ho gaya! 🔒");
-    } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
+    try { await reauth(currentPassword); await updatePassword(user, newPassword); setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); setSuccess("Password change ho gaya! ✅"); showToast("Password update ho gaya! 🔒"); } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
     setLoading(false);
   };
 
@@ -441,106 +536,107 @@ function ProfileEditScreen({ user, onBack, onUpdate, showToast }) {
     if (!emailPassword) { setError("Confirm karne ke liye password daalo!"); return; }
     if (!newEmail.includes("@")) { setError("Valid email daalo!"); return; }
     setLoading(true);
-    try {
-      await reauth(emailPassword);
-      await updateEmail(user, newEmail);
-      await sendEmailVerification(user);
-      setSuccess("Email update ho gaya! Verify karo inbox mein ✅");
-      showToast("Email update ho gaya! 📧");
-    } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
-    setLoading(false);
-  };
-
-  const sendForgotEmail = async () => {
-    setLoading(true); setError(""); setSuccess("");
-    try {
-      await sendPasswordResetEmail(auth, user.email);
-      setSuccess(`Reset email bheja ${user.email} pe! 📧`);
-      showToast("Reset email bheja! 📧");
-    } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
+    try { await reauth(emailPassword); await updateEmail(user, newEmail); await sendEmailVerification(user); setSuccess("Email update ho gaya! Verify karo inbox mein ✅"); showToast("Email update ho gaya! 📧"); } catch (e) { setError(FIREBASE_ERRORS[e.code] || e.message); }
     setLoading(false);
   };
 
   return (
-    <div style={{ padding: "0" }}>
+    <div>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <button onClick={onBack} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 12px", color: C.muted, cursor: "pointer", fontFamily: "'Outfit'", fontSize: 13 }}>← Back</button>
         <div style={{ fontSize: 22 }}>EDIT PROFILE</div>
       </div>
-
-      {/* Tab Selector */}
       <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
         {[["info","👤 Info"],["password","🔒 Password"],["email","📧 Email"]].map(([t, l]) => (
           <button key={t} onClick={() => { setTab(t); setError(""); setSuccess(""); }} style={{ flex: 1, background: tab === t ? C.accentDim : C.card, border: `1px solid ${tab === t ? C.accent + "66" : C.border}`, borderRadius: 8, padding: "8px 4px", cursor: "pointer", color: tab === t ? C.accent : C.muted, fontFamily: "'Outfit'", fontSize: 11, fontWeight: 500 }}>{l}</button>
         ))}
       </div>
-
       {error && <div style={{ background: `${C.red}22`, border: `1px solid ${C.red}44`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.red }}>⚠️ {error}</div>}
       {success && <div style={{ background: `${C.accent}22`, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 13, color: C.accent }}>✅ {success}</div>}
-
-      {/* INFO TAB */}
       {tab === "info" && (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
-          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>BASIC INFORMATION</div>
           <InputField label="DISPLAY NAME" value={newName} onChange={setNewName} placeholder="Apna naam daalo" />
-          <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>EMAIL</div>
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", fontFamily: "'Outfit'", fontSize: 14, color: C.muted, marginBottom: 16 }}>{user.email}</div>
-          <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginBottom: 16 }}>
-            Email change karne ke liye "Email" tab use karo
-          </div>
-          <button onClick={saveName} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: 1 }}>
-            {loading ? "SAVING..." : "💾 SAVE NAME"}
-          </button>
+          <button onClick={saveName} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18 }}>{loading ? "SAVING..." : "💾 SAVE NAME"}</button>
         </div>
       )}
-
-      {/* PASSWORD TAB */}
       {tab === "password" && (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
-          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>PASSWORD CHANGE KARO</div>
           <InputField label="CURRENT PASSWORD" type="password" value={currentPassword} onChange={setCurrentPassword} placeholder="Purana password" />
-          <InputField label="NEW PASSWORD" type="password" value={newPassword} onChange={setNewPassword} placeholder="Naya password (min 6 chars)" note="Kam se kam 6 characters" />
+          <InputField label="NEW PASSWORD" type="password" value={newPassword} onChange={setNewPassword} placeholder="Naya password (min 6)" />
           <InputField label="CONFIRM NEW PASSWORD" type="password" value={confirmPassword} onChange={setConfirmPassword} placeholder="Dobara naya password" />
-          <button onClick={savePassword} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: 1, marginBottom: 12 }}>
-            {loading ? "SAVING..." : "🔒 CHANGE PASSWORD"}
-          </button>
+          <button onClick={savePassword} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18, marginBottom: 12 }}>{loading ? "SAVING..." : "🔒 CHANGE PASSWORD"}</button>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 8 }}>Purana password yaad nahi?</div>
-            <button onClick={sendForgotEmail} disabled={loading} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>
-              📧 Reset Email Bhejo ({user.email})
-            </button>
+            <button onClick={async () => { try { await sendPasswordResetEmail(auth, user.email); setSuccess("Reset email bheja! 📧"); } catch (e) { setError("Error!"); } }} style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 8, padding: "8px 16px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>📧 Reset Email Bhejo</button>
           </div>
         </div>
       )}
-
-      {/* EMAIL TAB */}
       {tab === "email" && (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
-          <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>EMAIL CHANGE KARO</div>
-          <div style={{ background: `${C.yellow}11`, border: `1px solid ${C.yellow}33`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 12, color: C.yellow }}>
-            ⚠️ Email change karne ke baad verification email aayega — verify karna padega
-          </div>
-          <InputField label="CURRENT EMAIL" value={user.email} onChange={() => {}} placeholder="" />
+          <div style={{ background: `${C.yellow}11`, border: `1px solid ${C.yellow}33`, borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontFamily: "'Outfit'", fontSize: 12, color: C.yellow }}>⚠️ Email change karne ke baad verify karna padega</div>
           <InputField label="NEW EMAIL" type="email" value={newEmail} onChange={setNewEmail} placeholder="naya@email.com" />
-          <InputField label="CURRENT PASSWORD (confirm ke liye)" type="password" value={emailPassword} onChange={setEmailPassword} placeholder="Apna password" note="Security ke liye password confirm karna padega" />
-          <button onClick={saveEmail} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18, letterSpacing: 1 }}>
-            {loading ? "SAVING..." : "📧 UPDATE EMAIL"}
-          </button>
+          <InputField label="CURRENT PASSWORD" type="password" value={emailPassword} onChange={setEmailPassword} placeholder="Confirm ke liye" />
+          <button onClick={saveEmail} disabled={loading} style={{ width: "100%", background: C.accent, border: "none", borderRadius: 10, padding: "12px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 18 }}>{loading ? "SAVING..." : "📧 UPDATE EMAIL"}</button>
         </div>
       )}
     </div>
   );
 }
 
-// ── MAIN APP ──────────────────────────────────────────────────────────────────
+function CustomExerciseForm({ initial, onSave, onCancel }) {
+  const [form, setForm] = useState(initial || { name: "", muscle: "Chest", level: "Beginner", sets: "3", reps: "10-12", rest: "60", youtube: "", tip: "" });
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+  const isValid = form.name.trim() && form.sets && form.reps && form.rest;
+  return (
+    <div style={{ background: C.card, border: `1px solid ${C.accent}33`, borderRadius: 14, padding: 20, marginBottom: 16 }}>
+      <div style={{ fontSize: 18, color: C.accent, marginBottom: 16 }}>{initial ? "✏️ EDIT EXERCISE" : "➕ NEW EXERCISE"}</div>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>EXERCISE NAME *</div>
+        <input value={form.name} onChange={e => set("name", e.target.value)} placeholder="e.g. Cable Fly, Dumbbell Curl..." style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none" }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+        <div>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>MUSCLE GROUP *</div>
+          <select value={form.muscle} onChange={e => set("muscle", e.target.value)} style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", color: C.text, fontFamily: "'Outfit'", fontSize: 13, outline: "none", cursor: "pointer" }}>
+            {MUSCLES.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </div>
+        <div>
+          <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>LEVEL *</div>
+          <select value={form.level} onChange={e => set("level", e.target.value)} style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", color: C.text, fontFamily: "'Outfit'", fontSize: 13, outline: "none", cursor: "pointer" }}>
+            {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
+        {[["SETS *","sets","3"],["REPS *","reps","10-12"],["REST (sec) *","rest","60"]].map(([label, key, ph]) => (
+          <div key={key}>
+            <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>{label}</div>
+            <input value={form[key]} onChange={e => set(key, e.target.value)} placeholder={ph} style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 8px", color: C.text, fontFamily: "'Outfit'", fontSize: 13, outline: "none" }} />
+          </div>
+        ))}
+      </div>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>YOUTUBE SEARCH (optional)</div>
+        <input value={form.youtube} onChange={e => set("youtube", e.target.value)} placeholder="e.g. cable fly chest tutorial" style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none" }} />
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginBottom: 6 }}>FORM TIP (optional)</div>
+        <input value={form.tip} onChange={e => set("tip", e.target.value)} placeholder="e.g. Elbows slightly bent rakho" style={{ width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", color: C.text, fontFamily: "'Outfit'", fontSize: 14, outline: "none" }} />
+      </div>
+      <div style={{ display: "flex", gap: 8 }}>
+        <button onClick={onCancel} style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>Cancel</button>
+        <button onClick={() => isValid && onSave(form)} disabled={!isValid} style={{ flex: 2, background: isValid ? C.accent : C.border, border: "none", borderRadius: 8, padding: "12px", cursor: isValid ? "pointer" : "not-allowed", color: isValid ? "#000" : C.muted, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1 }}>
+          {initial ? "💾 UPDATE" : "✅ ADD EXERCISE"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function FitTrack() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
-    return unsub;
-  }, []);
+  useEffect(() => { const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); }); return unsub; }, []);
 
   if (authLoading) return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -556,7 +652,6 @@ export default function FitTrack() {
   return <AppMain user={user} onLogout={() => { signOut(auth); setUser(null); }} onUserUpdate={() => setUser({ ...auth.currentUser })} />;
 }
 
-// ── APP MAIN ──────────────────────────────────────────────────────────────────
 function AppMain({ user, onLogout, onUserUpdate }) {
   const uid = user.uid;
   const memberName = user.displayName || user.email?.split("@")[0] || "Member";
@@ -581,23 +676,65 @@ function AppMain({ user, onLogout, onUserUpdate }) {
   const [weekPlan, setWeekPlan] = useState(() => userStorage.get(uid, "plan") || DEFAULT_PLAN);
   const [editingPlan, setEditingPlan] = useState(false);
   const [tempPlan, setTempPlan] = useState({});
-  const [waterCount, setWaterCount] = useState(() => {
-    const saved = userStorage.get(uid, "water");
-    const today = new Date().toLocaleDateString("en-IN");
-    return (saved && saved.date === today) ? saved.count : 0;
-  });
   const [caloriesBurned, setCaloriesBurned] = useState(() => userStorage.get(uid, "burned") || 0);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [customExercises, setCustomExercises] = useState(() => userStorage.get(uid, "custom_ex") || []);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingEx, setEditingEx] = useState(null);
+  const [customFilter, setCustomFilter] = useState("All");
+
+  // Water in ML
+  const [waterMl, setWaterMl] = useState(() => {
+    const saved = userStorage.get(uid, "water_ml");
+    const today = new Date().toLocaleDateString("en-IN");
+    return (saved && saved.date === today) ? saved.ml : 0;
+  });
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 2800); };
   const getTodayKey = () => DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
   const todayKey = getTodayKey();
   const todayMuscle = weekPlan[todayKey];
 
+  const addWater = (ml) => {
+    const newMl = Math.min(waterMl + ml, WATER_GOAL_ML + 500);
+    setWaterMl(newMl);
+    userStorage.set(uid, "water_ml", { date: new Date().toLocaleDateString("en-IN"), ml: newMl });
+    if (newMl >= WATER_GOAL_ML && waterMl < WATER_GOAL_ML) showToast(`💧 3L complete! Hydration goal done! 🎉`);
+    else showToast(`+${ml}ml added! Total: ${(newMl / 1000).toFixed(2)}L 💧`);
+  };
+
+  const resetWater = () => {
+    setWaterMl(0);
+    userStorage.set(uid, "water_ml", { date: new Date().toLocaleDateString("en-IN"), ml: 0 });
+    showToast("Water counter reset!", "error");
+  };
+
+  const getWorkout = (muscle, level) => {
+    const base = DEMO_WORKOUTS[muscle]?.[level] || [];
+    const custom = customExercises.filter(ex => ex.muscle === muscle && ex.level === level);
+    return [...base, ...custom.map(ex => ({ ...ex, isCustom: true, rest: parseInt(ex.rest) || 60, sets: parseInt(ex.sets) || 3 }))];
+  };
+
   const handleGenerate = (muscle) => {
     const m = muscle || selectedMuscle;
     setLoading(true); setSets({}); setCompleted(false);
-    setTimeout(() => { setSelectedMuscle(m); setWorkout(DEMO_WORKOUTS[m]?.[selectedLevel] || DEMO_WORKOUTS["Chest"][selectedLevel]); setScreen("workout"); setLoading(false); }, 800);
+    setTimeout(() => { setSelectedMuscle(m); setWorkout(getWorkout(m, selectedLevel)); setScreen("workout"); setLoading(false); }, 800);
+  };
+
+  const saveCustomEx = (form) => {
+    const newEx = { ...form, id: Date.now(), sets: parseInt(form.sets), rest: parseInt(form.rest) };
+    let updated;
+    if (editingEx !== null) { updated = customExercises.map((ex, i) => i === editingEx ? newEx : ex); showToast("Exercise update ho gayi! ✅"); }
+    else { updated = [...customExercises, newEx]; showToast("Custom exercise add ho gayi! 💪"); }
+    setCustomExercises(updated); userStorage.set(uid, "custom_ex", updated);
+    setShowAddForm(false); setEditingEx(null);
+  };
+
+  const deleteCustomEx = (idx) => {
+    if (!window.confirm("Yeh exercise delete karni hai?")) return;
+    const updated = customExercises.filter((_, i) => i !== idx);
+    setCustomExercises(updated); userStorage.set(uid, "custom_ex", updated);
+    showToast("Exercise delete ho gayi!", "error");
   };
 
   const toggleSet = (exIdx, setIdx, restSecs, exName) => {
@@ -634,21 +771,13 @@ function AppMain({ user, onLogout, onUserUpdate }) {
     setHistory(newHistory); userStorage.set(uid, "history", newHistory);
     const newStreak = streak + 1; setStreak(newStreak); userStorage.set(uid, "streak", newStreak);
     const burned = WORKOUT_BURN[selectedMuscle]?.[selectedLevel] || 250;
-    const newBurned = caloriesBurned + burned;
-    setCaloriesBurned(newBurned); userStorage.set(uid, "burned", newBurned);
+    setCaloriesBurned(p => { const n = p + burned; userStorage.set(uid, "burned", n); return n; });
     setCompleted(true); showToast(`Workout complete! 🔥 ~${burned} kcal burned!`);
-  };
-
-  const addWater = () => {
-    if (waterCount >= 8) { showToast("Daily goal complete! 💧"); return; }
-    const newCount = waterCount + 1;
-    setWaterCount(newCount);
-    userStorage.set(uid, "water", { date: new Date().toLocaleDateString("en-IN"), count: newCount });
-    if (newCount === 8) showToast("💧 Water goal complete!");
   };
 
   const savePlan = () => { setWeekPlan(tempPlan); userStorage.set(uid, "plan", tempPlan); setEditingPlan(false); showToast("Plan saved!"); };
   const prog = totalProgress();
+  const filteredCustom = customFilter === "All" ? customExercises : customExercises.filter(ex => ex.muscle === customFilter);
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Bebas Neue', Impact, sans-serif", position: "relative", overflow: "hidden" }}>
@@ -660,7 +789,7 @@ function AppMain({ user, onLogout, onUserUpdate }) {
         @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
         .animate-in { animation: slideUp 0.4s ease forwards; }
         .card-hover:hover { border-color: ${C.accent}44 !important; transform: translateY(-1px); transition: all 0.2s; }
-        input:focus { border-color: ${C.accent} !important; }
+        input:focus, select:focus { border-color: ${C.accent} !important; }
       `}</style>
 
       <div style={{ position: "fixed", inset: 0, zIndex: 0, backgroundImage: `linear-gradient(${C.border}22 1px, transparent 1px), linear-gradient(90deg, ${C.border}22 1px, transparent 1px)`, backgroundSize: "40px 40px", pointerEvents: "none" }} />
@@ -668,7 +797,6 @@ function AppMain({ user, onLogout, onUserUpdate }) {
       {toast && <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: toast.type === "error" ? C.red : C.accent, color: toast.type === "error" ? "#fff" : "#000", padding: "10px 20px", borderRadius: 8, fontFamily: "'Outfit'", fontWeight: 600, fontSize: 14, zIndex: 9999, boxShadow: "0 4px 20px rgba(0,0,0,0.4)", whiteSpace: "nowrap" }}>{toast.msg}</div>}
       {timer && <RestTimer seconds={timer.seconds} onClose={() => setTimer(null)} />}
 
-      {/* PR Modal */}
       {prModal && (
         <div style={{ position: "fixed", inset: 0, background: "#000000dd", zIndex: 1500, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: C.card, borderRadius: 16, padding: 24, width: "min(320px, 90vw)", border: `1px solid ${C.accent}44` }}>
@@ -693,7 +821,6 @@ function AppMain({ user, onLogout, onUserUpdate }) {
         </div>
       )}
 
-      {/* Video Modal */}
       {activeVideo && (
         <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setActiveVideo(null)}>
           <div style={{ background: C.card, borderRadius: 12, width: "min(500px, 94vw)", padding: 24, textAlign: "center" }} onClick={e => e.stopPropagation()}>
@@ -706,13 +833,12 @@ function AppMain({ user, onLogout, onUserUpdate }) {
         </div>
       )}
 
-      {/* Logout Confirm */}
       {showLogoutConfirm && (
         <div style={{ position: "fixed", inset: 0, background: "#000000cc", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowLogoutConfirm(false)}>
           <div style={{ background: C.card, borderRadius: 16, padding: 28, width: "min(300px, 90vw)", border: `1px solid ${C.border}`, textAlign: "center" }} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>👋</div>
             <div style={{ fontSize: 20, color: C.text, marginBottom: 6 }}>LOGOUT KARNA HAI?</div>
-            <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 20 }}>{memberName} · {user.email}</div>
+            <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 20 }}>{memberName}</div>
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setShowLogoutConfirm(false)} style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px", cursor: "pointer", color: C.muted, fontFamily: "'Outfit'", fontSize: 13 }}>Cancel</button>
               <button onClick={onLogout} style={{ flex: 1, background: C.red, border: "none", borderRadius: 8, padding: "12px", cursor: "pointer", color: "#fff", fontFamily: "'Bebas Neue'", fontSize: 16 }}>LOGOUT</button>
@@ -728,17 +854,15 @@ function AppMain({ user, onLogout, onUserUpdate }) {
             <div style={{ fontSize: 28, letterSpacing: 3, color: C.accent, lineHeight: 1 }}>FITTRACK</div>
             <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginTop: 2 }}>Welcome, {memberName} 👋</div>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <div style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "6px 12px", textAlign: "center" }}>
-              <div style={{ fontSize: 18, color: C.accent, lineHeight: 1 }}>🔥{streak}</div>
-              <div style={{ fontFamily: "'Outfit'", fontSize: 10, color: C.muted }}>STREAK</div>
-            </div>
+          <div style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "6px 12px", textAlign: "center" }}>
+            <div style={{ fontSize: 18, color: C.accent, lineHeight: 1 }}>🔥{streak}</div>
+            <div style={{ fontFamily: "'Outfit'", fontSize: 10, color: C.muted }}>STREAK</div>
           </div>
         </header>
 
         <nav style={{ display: "flex", padding: "16px 20px 0", gap: 3 }}>
-          {[["home","🏠","HOME"],["plan","📅","PLAN"],["history","📊","LOG"],["prs","🏆","PRs"],["profile","👤","PROFILE"]].map(([s, icon, label]) => (
-            <button key={s} onClick={() => { setScreen(s === "home" && screen === "workout" ? "workout" : s); setEditingProfile(false); }}
+          {[["home","🏠","HOME"],["plan","📅","PLAN"],["custom","⚡","CUSTOM"],["history","📊","LOG"],["profile","👤","ME"]].map(([s, icon, label]) => (
+            <button key={s} onClick={() => { setScreen(s === "home" && screen === "workout" ? "workout" : s); setEditingProfile(false); setShowAddForm(false); setEditingEx(null); }}
               style={{ flex: 1, background: (screen === s || (s === "home" && screen === "workout")) ? C.accentDim : "transparent", border: `1px solid ${(screen === s || (s === "home" && screen === "workout")) ? C.accent + "66" : C.border}`, borderRadius: 8, padding: "7px 2px", cursor: "pointer", color: (screen === s || (s === "home" && screen === "workout")) ? C.accent : C.muted, fontSize: 9, letterSpacing: 1, fontFamily: "'Bebas Neue'", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
               <span style={{ fontSize: 13 }}>{icon}</span>{label}
             </button>
@@ -759,18 +883,23 @@ function AppMain({ user, onLogout, onUserUpdate }) {
                   <button onClick={() => handleGenerate(todayMuscle)} style={{ background: MUSCLE_COLORS[todayMuscle], border: "none", borderRadius: 8, padding: "10px 16px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 14 }}>START ⚡</button>
                 </div>
               )}
-              <div style={{ background: "#4488ff11", border: "1px solid #4488ff33", borderRadius: 10, padding: "12px 14px", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>💧 WATER</div>
-                  <div style={{ fontSize: 18, color: C.blue }}>{waterCount}/8 glasses</div>
-                </div>
-                <button onClick={addWater} style={{ background: `${C.blue}22`, border: `1px solid ${C.blue}44`, borderRadius: 8, padding: "8px 14px", cursor: "pointer", color: C.blue, fontFamily: "'Bebas Neue'", fontSize: 14 }}>+ ADD</button>
-              </div>
+
+              {/* Water Compact */}
+              <WaterTracker waterMl={waterMl} goalMl={WATER_GOAL_ML} onAdd={addWater} onReset={resetWater} compact={true} />
+
               <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</div>
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 13, color: C.muted, letterSpacing: 2, marginBottom: 10, fontFamily: "'Outfit'" }}>SELECT MUSCLE GROUP</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {MUSCLES.map(m => <button key={m} onClick={() => setSelectedMuscle(m)} style={{ background: selectedMuscle === m ? C.accent : C.card, border: `1px solid ${selectedMuscle === m ? C.accent : C.border}`, borderRadius: 6, padding: "8px 14px", cursor: "pointer", color: selectedMuscle === m ? "#000" : C.text, fontSize: 13, fontFamily: "'Bebas Neue'", letterSpacing: 1, transition: "all 0.2s" }}>{m}</button>)}
+                  {MUSCLES.map(m => {
+                    const customCount = customExercises.filter(e => e.muscle === m && e.level === selectedLevel).length;
+                    return (
+                      <button key={m} onClick={() => setSelectedMuscle(m)} style={{ background: selectedMuscle === m ? C.accent : C.card, border: `1px solid ${selectedMuscle === m ? C.accent : C.border}`, borderRadius: 6, padding: "8px 14px", cursor: "pointer", color: selectedMuscle === m ? "#000" : C.text, fontSize: 13, fontFamily: "'Bebas Neue'", letterSpacing: 1, transition: "all 0.2s", position: "relative" }}>
+                        {m}
+                        {customCount > 0 && <span style={{ position: "absolute", top: -4, right: -4, background: C.accent, color: "#000", borderRadius: "50%", width: 14, height: 14, fontSize: 9, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Outfit'", fontWeight: 700 }}>{customCount}</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div style={{ marginBottom: 24 }}>
@@ -823,13 +952,16 @@ function AppMain({ user, onLogout, onUserUpdate }) {
               {workout.map((ex, i) => {
                 const done = setsDone(i); const allDone = done === ex.sets; const pr = prs[ex.name];
                 return (
-                  <div key={i} className="card-hover" style={{ background: C.card, border: `1px solid ${allDone ? C.accent + "44" : C.border}`, borderRadius: 12, padding: 16, marginBottom: 14 }}>
+                  <div key={i} className="card-hover" style={{ background: C.card, border: `1px solid ${allDone ? C.accent + "44" : ex.isCustom ? C.accent + "22" : C.border}`, borderRadius: 12, padding: 16, marginBottom: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 17, color: allDone ? C.accent : C.text }}>{allDone && "✅ "}{ex.name}</div>
+                        <div style={{ fontSize: 17, color: allDone ? C.accent : C.text }}>
+                          {allDone && "✅ "}{ex.name}
+                          {ex.isCustom && <span style={{ fontSize: 10, background: C.accent + "22", color: C.accent, borderRadius: 4, padding: "1px 6px", marginLeft: 6, fontFamily: "'Outfit'" }}>CUSTOM</span>}
+                        </div>
                         <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginTop: 3 }}>{ex.sets} sets · {ex.reps} reps · Rest {ex.rest}s</div>
                       </div>
-                      <button onClick={() => setActiveVideo(ex.youtube)} style={{ background: "#ff000022", border: "1px solid #ff000066", borderRadius: 8, padding: "5px 9px", cursor: "pointer", color: "#ff4444", fontSize: 12, fontFamily: "'Outfit'" }}>▶ Demo</button>
+                      {ex.youtube && <button onClick={() => setActiveVideo(ex.youtube)} style={{ background: "#ff000022", border: "1px solid #ff000066", borderRadius: 8, padding: "5px 9px", cursor: "pointer", color: "#ff4444", fontSize: 12, fontFamily: "'Outfit'" }}>▶ Demo</button>}
                     </div>
                     {pr && <div style={{ background: C.accentDim, borderRadius: 6, padding: "4px 10px", marginBottom: 8, fontFamily: "'Outfit'", fontSize: 12, color: C.accent, display: "inline-block" }}>🏆 PR: {pr.weight}kg × {pr.reps}</div>}
                     {ex.tip && <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, background: C.surface, borderRadius: 6, padding: "5px 10px", marginBottom: 10, borderLeft: `3px solid ${C.yellow}` }}>💡 {ex.tip}</div>}
@@ -893,11 +1025,71 @@ function AppMain({ user, onLogout, onUserUpdate }) {
             </div>
           )}
 
+          {/* CUSTOM */}
+          {screen === "custom" && (
+            <div className="animate-in">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <div style={{ fontSize: 22 }}>CUSTOM EXERCISES</div>
+                {!showAddForm && editingEx === null && (
+                  <button onClick={() => { setShowAddForm(true); setEditingEx(null); }} style={{ background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 8, padding: "8px 14px", cursor: "pointer", color: C.accent, fontFamily: "'Bebas Neue'", fontSize: 14, letterSpacing: 1 }}>➕ ADD NEW</button>
+                )}
+              </div>
+              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 16 }}>{customExercises.length} custom exercises</div>
+              {(showAddForm || editingEx !== null) && <CustomExerciseForm initial={editingEx !== null ? customExercises[editingEx] : null} onSave={saveCustomEx} onCancel={() => { setShowAddForm(false); setEditingEx(null); }} />}
+              {!showAddForm && editingEx === null && (
+                <>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+                    {["All", ...MUSCLES].map(m => <button key={m} onClick={() => setCustomFilter(m)} style={{ background: customFilter === m ? C.accent : C.card, border: `1px solid ${customFilter === m ? C.accent : C.border}`, borderRadius: 6, padding: "6px 12px", cursor: "pointer", color: customFilter === m ? "#000" : C.muted, fontSize: 11, fontFamily: "'Bebas Neue'", letterSpacing: 1 }}>{m}</button>)}
+                  </div>
+                  {filteredCustom.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "40px", color: C.muted, fontFamily: "'Outfit'" }}>
+                      <div style={{ fontSize: 52 }}>⚡</div>
+                      <div style={{ marginTop: 12, fontSize: 15 }}>Koi custom exercise nahi hai!</div>
+                      <button onClick={() => setShowAddForm(true)} style={{ marginTop: 16, background: C.accent, border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", color: "#000", fontFamily: "'Bebas Neue'", fontSize: 16 }}>➕ ADD KARO</button>
+                    </div>
+                  ) : filteredCustom.map((ex, i) => {
+                    const realIdx = customExercises.indexOf(ex); const color = MUSCLE_COLORS[ex.muscle] || C.accent;
+                    return (
+                      <div key={ex.id || i} className="card-hover" style={{ background: C.card, border: `1px solid ${color}33`, borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 17, color: C.text }}>{ex.name}</div>
+                            <div style={{ display: "flex", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                              <span style={{ fontFamily: "'Outfit'", fontSize: 11, background: `${color}22`, color, borderRadius: 4, padding: "2px 8px" }}>{ex.muscle}</span>
+                              <span style={{ fontFamily: "'Outfit'", fontSize: 11, background: C.surface, color: C.muted, borderRadius: 4, padding: "2px 8px" }}>{ex.level}</span>
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button onClick={() => { setEditingEx(realIdx); setShowAddForm(false); }} style={{ background: `${C.blue}22`, border: `1px solid ${C.blue}44`, borderRadius: 6, padding: "6px 10px", cursor: "pointer", color: C.blue, fontFamily: "'Outfit'", fontSize: 12 }}>✏️</button>
+                            <button onClick={() => deleteCustomEx(realIdx)} style={{ background: `${C.red}22`, border: `1px solid ${C.red}44`, borderRadius: 6, padding: "6px 10px", cursor: "pointer", color: C.red, fontFamily: "'Outfit'", fontSize: 12 }}>🗑️</button>
+                          </div>
+                        </div>
+                        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{ex.sets} sets · {ex.reps} reps · Rest {ex.rest}s</div>
+                        {ex.tip && <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted, marginTop: 6, borderLeft: `3px solid ${C.yellow}`, paddingLeft: 8 }}>💡 {ex.tip}</div>}
+                        {ex.youtube && <button onClick={() => setActiveVideo(ex.youtube)} style={{ marginTop: 8, background: "#ff000022", border: "1px solid #ff000066", borderRadius: 6, padding: "4px 10px", cursor: "pointer", color: "#ff4444", fontSize: 12, fontFamily: "'Outfit'" }}>▶ Demo</button>}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          )}
+
           {/* HISTORY */}
           {screen === "history" && (
             <div className="animate-in">
               <div style={{ fontSize: 22, marginBottom: 4 }}>WORKOUT LOG</div>
               <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 20 }}>{history.length} workouts · 🔥 {streak} streak</div>
+
+              {/* Water Summary in History */}
+              <div style={{ background: "#4488ff11", border: "1px solid #4488ff33", borderRadius: 12, padding: "14px 16px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted }}>💧 TODAY'S WATER</div>
+                  <div style={{ fontSize: 22, color: waterMl >= WATER_GOAL_ML ? C.accent : C.blue }}>{(waterMl / 1000).toFixed(2)}L <span style={{ fontSize: 13, color: C.muted }}>/ 3L</span></div>
+                </div>
+                <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: waterMl >= WATER_GOAL_ML ? C.accent : C.muted }}>{waterMl >= WATER_GOAL_ML ? "✅ Goal Done!" : `${((WATER_GOAL_ML - waterMl) / 1000).toFixed(2)}L baki`}</div>
+              </div>
+
               <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
                 {[["💪","TOTAL",history.length],["🔥","STREAK",streak],["📅","THIS WEEK",history.filter(h=>Date.now()-h.ts<7*86400000).length]].map(([icon,label,val]) => (
                   <div key={label} style={{ flex: 1, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 10px", textAlign: "center" }}>
@@ -910,34 +1102,8 @@ function AppMain({ user, onLogout, onUserUpdate }) {
               {history.length === 0 ? <div style={{ textAlign: "center", padding: "40px", color: C.muted, fontFamily: "'Outfit'" }}><div style={{ fontSize: 40 }}>📋</div><div style={{ marginTop: 12 }}>No workouts yet!</div></div>
                 : history.map((h, i) => (
                   <div key={i} className="card-hover" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ fontSize: 16, color: C.accent }}>{h.muscle} DAY</div>
-                      <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{h.level} · {h.exercises} exercises</div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{h.date}</div>
-                      <div style={{ fontSize: 18 }}>✅</div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-
-          {/* PRs */}
-          {screen === "prs" && (
-            <div className="animate-in">
-              <div style={{ fontSize: 22, marginBottom: 4 }}>PERSONAL RECORDS</div>
-              <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginBottom: 20 }}>{Object.keys(prs).length} exercises logged</div>
-              {Object.keys(prs).length === 0 ? <div style={{ textAlign: "center", padding: "40px", color: C.muted, fontFamily: "'Outfit'" }}><div style={{ fontSize: 48 }}>🏆</div><div style={{ marginTop: 12 }}>Workout karo aur weight log karo!</div></div>
-                : Object.entries(prs).map(([name, pr]) => (
-                  <div key={name} className="card-hover" style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16, marginBottom: 10 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div><div style={{ fontSize: 16, color: C.text }}>{name}</div><div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{pr.date}</div></div>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 22, color: C.accent }}>{pr.weight}<span style={{ fontSize: 13, color: C.muted }}>kg</span></div>
-                        <div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>× {pr.reps} reps</div>
-                      </div>
-                    </div>
+                    <div><div style={{ fontSize: 16, color: C.accent }}>{h.muscle} DAY</div><div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{h.level} · {h.exercises} exercises</div></div>
+                    <div style={{ textAlign: "right" }}><div style={{ fontFamily: "'Outfit'", fontSize: 12, color: C.muted }}>{h.date}</div><div style={{ fontSize: 18 }}>✅</div></div>
                   </div>
                 ))}
             </div>
@@ -951,27 +1117,14 @@ function AppMain({ user, onLogout, onUserUpdate }) {
               ) : (
                 <>
                   <div style={{ fontSize: 22, marginBottom: 20 }}>MY PROFILE</div>
-
-                  {/* Avatar & Info */}
                   <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24, marginBottom: 16, textAlign: "center" }}>
-                    <div style={{ width: 80, height: 80, background: C.accentDim, border: `2px solid ${C.accent}`, borderRadius: "50%", margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontFamily: "'Bebas Neue'" }}>
-                      {memberName.charAt(0).toUpperCase()}
-                    </div>
+                    <div style={{ width: 80, height: 80, background: C.accentDim, border: `2px solid ${C.accent}`, borderRadius: "50%", margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, fontFamily: "'Bebas Neue'" }}>{memberName.charAt(0).toUpperCase()}</div>
                     <div style={{ fontSize: 24, color: C.accent }}>{memberName}</div>
                     <div style={{ fontFamily: "'Outfit'", fontSize: 13, color: C.muted, marginTop: 4 }}>{user.email}</div>
-                    {user.emailVerified ? (
-                      <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.accent, marginTop: 6 }}>✅ Email verified</div>
-                    ) : (
-                      <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.yellow, marginTop: 6 }}>⚠️ Email verify nahi hua</div>
-                    )}
-                    <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, marginTop: 4 }}>
-                      Member since {user.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString("en-IN") : "N/A"}
-                    </div>
+                    {user.emailVerified ? <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.accent, marginTop: 6 }}>✅ Email verified</div> : <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.yellow, marginTop: 6 }}>⚠️ Email verify nahi hua</div>}
                   </div>
-
-                  {/* Stats */}
                   <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-                    {[["🔥","Streak",streak],["💪","Workouts",history.length],["🏆","PRs",Object.keys(prs).length]].map(([icon,label,val]) => (
+                    {[["🔥","Streak",streak],["💪","Workouts",history.length],["⚡","Custom",customExercises.length]].map(([icon,label,val]) => (
                       <div key={label} style={{ flex: 1, background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 10px", textAlign: "center" }}>
                         <div style={{ fontSize: 20 }}>{icon}</div>
                         <div style={{ fontSize: 22, color: C.accent }}>{val}</div>
@@ -980,32 +1133,21 @@ function AppMain({ user, onLogout, onUserUpdate }) {
                     ))}
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Water Full Tracker in Profile */}
+                  <WaterTracker waterMl={waterMl} goalMl={WATER_GOAL_ML} onAdd={addWater} onReset={resetWater} compact={false} />
+
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <button onClick={() => setEditingProfile(true)} style={{ width: "100%", background: C.accentDim, border: `1px solid ${C.accent}44`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.accent, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 20 }}>✏️</span>
-                      <div>
-                        <div>EDIT PROFILE</div>
-                        <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Naam, email, password change karo</div>
-                      </div>
+                      <div><div>EDIT PROFILE</div><div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Naam, email, password change karo</div></div>
                     </button>
-
-                    <button onClick={async () => {
-                      try { await sendPasswordResetEmail(auth, user.email); showToast("Reset email bheja! 📧"); } catch (e) { showToast("Error aa gayi!", "error"); }
-                    }} style={{ width: "100%", background: `${C.blue}11`, border: `1px solid ${C.blue}33`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.blue, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
+                    <button onClick={async () => { try { await sendPasswordResetEmail(auth, user.email); showToast("Reset email bheja! 📧"); } catch (e) { showToast("Error!", "error"); } }} style={{ width: "100%", background: `${C.blue}11`, border: `1px solid ${C.blue}33`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.blue, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 20 }}>🔑</span>
-                      <div>
-                        <div>FORGOT PASSWORD</div>
-                        <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Reset email bhejenge {user.email} pe</div>
-                      </div>
+                      <div><div>FORGOT PASSWORD</div><div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Reset email {user.email} pe</div></div>
                     </button>
-
                     <button onClick={() => setShowLogoutConfirm(true)} style={{ width: "100%", background: `${C.red}11`, border: `1px solid ${C.red}33`, borderRadius: 10, padding: 14, cursor: "pointer", color: C.red, fontFamily: "'Bebas Neue'", fontSize: 16, letterSpacing: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 20 }}>🚪</span>
-                      <div>
-                        <div>LOGOUT</div>
-                        <div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Account se bahar jao</div>
-                      </div>
+                      <div><div>LOGOUT</div><div style={{ fontFamily: "'Outfit'", fontSize: 11, color: C.muted, letterSpacing: 0 }}>Account se bahar jao</div></div>
                     </button>
                   </div>
                 </>
