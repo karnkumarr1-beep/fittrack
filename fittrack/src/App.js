@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { auth } from "./firebase";
+import NutritionScreen from "./Nutrition";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -861,9 +862,9 @@ function AppMain({ user, onLogout, onUserUpdate }) {
         </header>
 
         <nav style={{ display: "flex", padding: "16px 20px 0", gap: 3 }}>
-          {[["home","🏠","HOME"],["plan","📅","PLAN"],["custom","⚡","CUSTOM"],["history","📊","LOG"],["profile","👤","ME"]].map(([s, icon, label]) => (
+          {[["home","🏠","HOME"],["plan","📅","PLAN"],["nutrition","🥗","DIET"],["custom","⚡","MY EX"],["history","📊","LOG"],["profile","👤","ME"]].map(([s, icon, label]) => (
             <button key={s} onClick={() => { setScreen(s === "home" && screen === "workout" ? "workout" : s); setEditingProfile(false); setShowAddForm(false); setEditingEx(null); }}
-              style={{ flex: 1, background: (screen === s || (s === "home" && screen === "workout")) ? C.accentDim : "transparent", border: `1px solid ${(screen === s || (s === "home" && screen === "workout")) ? C.accent + "66" : C.border}`, borderRadius: 8, padding: "7px 2px", cursor: "pointer", color: (screen === s || (s === "home" && screen === "workout")) ? C.accent : C.muted, fontSize: 9, letterSpacing: 1, fontFamily: "'Bebas Neue'", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              style={{ flex: 1, background: (screen === s || (s === "home" && screen === "workout")) ? C.accentDim : "transparent", border: `1px solid ${(screen === s || (s === "home" && screen === "workout")) ? C.accent + "66" : C.border}`, borderRadius: 8, padding: "7px 2px", cursor: "pointer", color: (screen === s || (s === "home" && screen === "workout")) ? C.accent : C.muted, fontSize: 8, letterSpacing: 0, fontFamily: 'Bebas Neue', display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
               <span style={{ fontSize: 13 }}>{icon}</span>{label}
             </button>
           ))}
@@ -986,6 +987,13 @@ function AppMain({ user, onLogout, onUserUpdate }) {
                   <div style={{ fontFamily: "'Outfit'", fontSize: 14, color: C.orange, marginTop: 4 }}>~{WORKOUT_BURN[selectedMuscle]?.[selectedLevel]} kcal burned!</div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* NUTRITION */}
+          {screen === "nutrition" && (
+            <div className="animate-in">
+              <NutritionScreen uid={uid} userStorage={userStorage} caloriesBurned={caloriesBurned} showToast={showToast} />
             </div>
           )}
 
